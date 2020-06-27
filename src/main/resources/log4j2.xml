@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{[%-5level] %d{HH:mm:ss} %logger{36}:%L - %msg%n}" disableAnsi="false"/>
+        </Console>
+        <File name="tmpFile" fileName="/tmp/output.log" bufferedIO="false" advertiseURI="file://tmp/output.log"
+              advertise="true">
+            <PatternLayout pattern="%highlight{[%-5level] %d{HH:mm:ss} %logger{36}:%L - %msg%n}" disableAnsi="false"/>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.mkflow" level="DEBUG" additivity="false">
+            <Appender-ref ref="Console" level="DEBUG"/>
+            <Appender-ref ref="tmpFile" level="DEBUG"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <Appender-ref ref="tmpFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

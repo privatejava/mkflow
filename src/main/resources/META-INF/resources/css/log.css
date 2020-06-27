@@ -1,0 +1,64 @@
+pre,code{
+    white-space:pre-wrap;/*css-3*/
+    white-space:-moz-pre-wrap;/*Mozilla,since1999*/
+    white-space:-pre-wrap;/*Opera4-6*/
+    white-space:-o-pre-wrap;/*Opera7*/
+    word-wrap:break-word;/*InternetExplorer5.5+*/　　
+}
+/*body {
+    background-color:#454852;
+}*/
+/* for block of numbers */
+.hljs-ln-numbers {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    text-align: center;
+    color: #ccc;
+    /*border-right: 1px solid #CCC;*/
+    vertical-align: top;
+    padding-right: 5px !important;
+
+
+    　/* your custom style here */
+}
+
+.hljs-ln{
+    width: 100%;
+    table-layout: fixed;
+    /* your custom style here */
+    white-space:pre-wrap;/*css-3*/
+    white-space:-moz-pre-wrap;/*Mozilla,since1999*/
+    white-space:-pre-wrap;/*Opera4-6*/
+    white-space:-o-pre-wrap;/*Opera7*/
+    word-wrap:break-word;/*InternetExplorer5.5+*/　
+}
+.hljs-ln td:first-child{
+    width:70px;
+}
+/* for block of code */
+.hljs-ln-code {
+    padding-left: 10px;
+}
+
+.log-pane{
+    margin: 50px;
+}
+
+body{
+    background-color:#4a4f54;
+}
+
+.spinner {
+    display: block;
+    position: fixed;
+    z-index: 1031; /* High z-index so it is on top of the page */
+    top: 50%;
+    right: 50%; /* or: left: 50%; */
+    margin-top: -..px; /* half of the elements height */
+    margin-right: -..px; /* half of the elements widht */
+  }
