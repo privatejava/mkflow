@@ -10,7 +10,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -41,14 +44,18 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
 
     private List<Channel> channels;
 
+    private String uniqueId;
+
+    private Long created;
+
     protected Server() {
         addBuildspecParser(new BuildSpecParser());
         channels = new ArrayList<>();
-
+        created = System.currentTimeMillis();
     }
 
     public void init(String key) {
-        String uniqueId = key;
+        uniqueId = key;
         workDir = Path.of(System.getProperty("java.io.tmpdir") + "/" + key);
         sourceFile = workDir.resolve("codebase").toFile();
         sourceFile.mkdir();
@@ -56,7 +63,7 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
     }
 
     public void init() throws IOException {
-        String uniqueId = UUID.randomUUID().toString();
+        uniqueId = UUID.randomUUID().toString();
         File f = new File(System.getProperty("java.io.tmpdir") + "/" + uniqueId);
         f.mkdir();
         workDir = f.toPath();
@@ -71,6 +78,10 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
             buildspecParsers = new ArrayList<>();
         }
         return buildspecParsers;
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
     }
 
     public File getSourceFile() {
@@ -300,6 +311,12 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
         return success;
     }
 
+    private void buildstats() {
+        Duration diff = Duration.of((System.currentTimeMillis() - created), ChronoUnit.MILLIS);
+        writeLog("Build Started:\t\t" + new Date(System.currentTimeMillis()));
+        writeLog("Total Build Time:\t\t" + String.format("%02d:%02d", diff.toMinutesPart(), diff.toSecondsPart()));
+    }
+
     private void writeLog(String msg) {
         log.debug(msg);
         try {
@@ -366,6 +383,7 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
                     writeLog("Build Failed: " + reason.getMessage());
                     writeLog(trace.toString());
                 }
+                buildstats();
                 completed.complete(success);
 
             }
@@ -555,6 +573,8 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
         ChannelShell channel = (ChannelShell) getSession().openChannel("shell");
         channel.setPtySize(1000, 10000, 1000, 10000);
+        channel.setPtyType("dumb");
+        channel.setPty(true);
         channels.add(channel);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
@@ -571,9 +591,9 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
 
         Utils.getExecutorService().submit(new Thread() {
             public void run() {
+                boolean success = true;
+                Exception reason = null;
                 try {
-                    boolean success = true;
-
                     writeLog("SOURCE =========");
                     success = downloadCache();
                     success = copyCodebase();
@@ -596,10 +616,22 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
 
                     writeLog("UPLOAD ARTIFACTS =========");
                     success = uploadCache();
-
-                    completableFuture.complete(success);
                 } catch (Exception e) {
+                    reason = e;
                     e.printStackTrace();
+                } finally {
+                    if (success) {
+                        writeLog("Build Succedded");
+                    } else {
+                        StringWriter trace = new StringWriter();
+                        PrintWriter pw = new PrintWriter(trace);
+                        reason.printStackTrace(pw);
+                        writeLog("Build Failed: " + reason.getMessage());
+                        writeLog(trace.toString());
+                    }
+                    buildstats();
+                    completableFuture.complete(success);
+                    System.out.println("Completing..");
                 }
             }
         });
