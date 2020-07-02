@@ -5,7 +5,7 @@ import java.util.List;
 public class Provision {
     private ProvisionType type;
 
-    private String instanceType;
+    private List<String> instanceType;
 
     private List<IAMPermission> permission;
 
@@ -17,11 +17,11 @@ public class Provision {
         this.type = type;
     }
 
-    public String getInstanceType() {
+    public List<String> getInstanceType() {
         return instanceType;
     }
 
-    public void setInstanceType(String instanceType) {
+    public void setInstanceType(List<String> instanceType) {
         this.instanceType = instanceType;
     }
 
