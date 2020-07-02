@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
@@ -31,8 +30,7 @@ public class JobQueueService {
     }
 
     public String addJob(Server server) {
-        String uuid = UUID.randomUUID().toString();
-        jobs.put(uuid, server);
+        jobs.put(server.getUniqueId(), server);
         Utils.getExecutorService().submit(() -> {
             try {
                 server.provision().get();
@@ -51,6 +49,6 @@ public class JobQueueService {
             }
         });
 
-        return uuid;
+        return server.getUniqueId();
     }
 }
