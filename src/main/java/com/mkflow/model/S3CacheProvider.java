@@ -23,6 +23,7 @@ public class S3CacheProvider implements CacheProvider {
         long timeout = 300000L;
         while (timeout > 0L) {
             if (channel.isClosed()) {
+                log.debug("Exit Status: {}", channel.getExitStatus());
                 break;
             }
             Thread.sleep(1000L);
@@ -61,6 +62,7 @@ public class S3CacheProvider implements CacheProvider {
             ChannelExec exec = (ChannelExec) session.openChannel("exec");
             exec.setCommand(command);
             exec.connect(60000);
+            waitUntilChannelTimeout(exec);
             exec.disconnect();
         }
     }
