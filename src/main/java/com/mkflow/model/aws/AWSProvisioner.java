@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -119,8 +121,11 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             DescribeVpcsResponse describeVpcsResponse = client.describeVpcs();
             List<Vpc> vpcs = describeVpcsResponse.vpcs();
             Optional<Vpc> aws_default = vpcs.stream()
-                .filter(f -> f.tags().stream()
-                    .filter(t -> t.value().toLowerCase().contains("aws default")).findFirst().isPresent())
+                .filter(f -> {
+                    log.debug("VPC: {} Default: {} CIDR Block: {}", f.vpcId(), f.isDefault(), f.cidrBlock());
+                    return f.cidrBlock().startsWith("172") || f.tags().stream()
+                        .filter(t -> t.value().toLowerCase().contains("aws default")).findFirst().isPresent();
+                })
                 .findAny();
             if (aws_default.isPresent()) {
                 vpc = aws_default.get();
@@ -179,13 +184,22 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
         ListInstanceProfilesResponse profiles = iamClient.listInstanceProfiles().get();
 
         if (!profiles.hasInstanceProfiles()) {
-            CreateInstanceProfileResponse ec2_instance_profile = iamClient.createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE")).get();
+            CreateInstanceProfileResponse ec2_instance_profile = iamClient
+                .createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE")).get();
             instanceProfile = ec2_instance_profile.instanceProfile();
         } else {
-            instanceProfile = profiles.instanceProfiles().stream().filter(f -> f.instanceProfileName().equalsIgnoreCase("EC2_INSTANCE_PROFILE")).findFirst().get();
+            Optional<InstanceProfile> hasProfile = profiles.instanceProfiles().stream()
+                .filter(f -> f.instanceProfileName().equalsIgnoreCase("EC2_INSTANCE_PROFILE")).findFirst();
+            if (!hasProfile.isPresent()) {
+                instanceProfile = iamClient.createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE"))
+                    .get().instanceProfile();
+            } else {
+                instanceProfile = hasProfile.get();
+            }
         }
 
-        Optional<Role> findRole = iamClient.listRoles().get().roles().stream().filter(f -> f.roleName().equalsIgnoreCase("EC2_INSTANCE_PROFILE_ROLE")).findFirst();
+        Optional<Role> findRole = iamClient.listRoles().get().roles().stream().filter(f -> f.roleName()
+            .equalsIgnoreCase("EC2_INSTANCE_PROFILE_ROLE")).findFirst();
 
         if (findRole.isPresent()) {
             role = findRole.get();
@@ -235,7 +249,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                 iamClient.putRolePolicy(c -> c.roleName("EC2_INSTANCE_PROFILE_ROLE").policyName("customPolicy").policyDocument(policyDoc));
                 log.debug("Completed creating role");
             } catch (ExecutionException | JsonProcessingException ex) {
-                ex.printStackTrace();
+//                ex.printStackTrace();
                 log.debug("Exception occured: {}", doc != null);
                 if (doc != null) {
                     final String policyDoc = doc;
@@ -266,21 +280,36 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
     public CompletableFuture<SpotInstanceRequest> marketProvision(Server server) {
         this.server = server;
         log.debug("Provisioning from Market ..");
-        InstanceType instanceType = server.getCloud().getProvision().getInstanceType() != null ?
-            InstanceType.fromValue(server.getCloud().getProvision().getInstanceType()) :
-            InstanceType.T2_MICRO;
-        log.debug("Instance Type: {}", instanceType);
+        List<InstanceType> instanceTypes = server.getCloud().getProvision().getInstanceType() != null &&
+            !server.getCloud().getProvision().getInstanceType().isEmpty() ?
+            server.getCloud().getProvision().getInstanceType().stream()
+                .map(s -> InstanceType.fromValue(s)).collect(Collectors.toList()) :
+            Arrays.asList(InstanceType.T2_MICRO);
+        log.debug("Instance Type: {}", instanceTypes);
         CompletableFuture<SpotInstanceRequest> completableFuture = new CompletableFuture<>();
         try {
             int[] maxSecond = new int[]{5 * 60}; //seconds
             Ec2Client client = client();
             log.debug("Getting price ..");
-            List<SpotPrice> spotPrices = client.describeSpotPriceHistory((c) -> {
-                c.instanceTypes(instanceType);
-            }).spotPriceHistory();
-//        log.debug("Prices : {}", spotPrices);
-            double avgRate = spotPrices.stream().mapToDouble(m -> Double.parseDouble(m.spotPrice())).average().orElse(Double.NaN);
-            log.debug("Avg: {}", avgRate);
+            Map<InstanceType, Double> prices = instanceTypes.stream().collect(Collectors.toMap(i -> i, i -> {
+                List<SpotPrice> spotPrices = client.describeSpotPriceHistory((c) -> {
+                    c.instanceTypes(i).endTime(Instant.now().minus(24, ChronoUnit.HOURS));
+                }).spotPriceHistory();
+                double avgRate = spotPrices.stream().mapToDouble(m -> Double.parseDouble(m.spotPrice())).average().orElse(Double.NaN);
+
+                return avgRate;
+            }));
+            Map.Entry<InstanceType, Double> spotPrice = null;
+            for (Map.Entry<InstanceType, Double> entry : prices.entrySet()) {
+                if (spotPrice == null || entry.getValue().compareTo(spotPrice.getValue()) > 0) {
+                    spotPrice = entry;
+                }
+            }
+            final Map.Entry<InstanceType, Double> selectedInstance = spotPrice;
+
+            log.debug("Available : {}", prices);
+            log.debug("Selected : {}", selectedInstance);
+
 
             Calendar from = Calendar.getInstance();
             from.add(Calendar.SECOND, 2);
@@ -292,7 +321,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             Image image = getAmiId("amzn2-ami-hvm-2.0*");
             //ami-0f310fced6141e627
             RequestSpotInstancesRequest requestSpot = RequestSpotInstancesRequest.builder()
-                .spotPrice("" + avgRate).instanceCount(Integer.valueOf(1))
+                .spotPrice("" + selectedInstance.getValue()).instanceCount(Integer.valueOf(1))
                 .type(SpotInstanceType.ONE_TIME)
                 .validUntil(maxAlive.toInstant())
                 .blockDurationMinutes(60)
@@ -301,7 +330,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                         .iamInstanceProfile(i -> i.arn(instanceProfile.arn()))
                         .subnetId(getSubnet().subnetId())
                         .keyName(keyName)
-                        .instanceType(instanceType)
+                        .instanceType(selectedInstance.getKey())
                         .securityGroupIds(getSecurityGroupId());
 
                 }).build();
@@ -312,34 +341,39 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             DescribeInstancesResponse instances = client.describeInstances();
 
             for (SpotInstanceRequest requestResponse : requests) {
-                System.out.println("Created Spot Request: " + requestResponse.spotInstanceRequestId());
+                log.debug("Created Spot Request: " + requestResponse.spotInstanceRequestId());
                 spotInstanceRequestIds.add(requestResponse.spotInstanceRequestId());
             }
             Utils.getExecutorService().submit(() -> {
+                int secondPassed = 0;
                 while (maxSecond[0] > 0 && !completableFuture.isDone()) {
                     try {
                         DescribeSpotInstanceRequestsResponse describeResponses = client
                             .describeSpotInstanceRequests(DescribeSpotInstanceRequestsRequest.builder()
                                 .spotInstanceRequestIds(spotInstanceRequestIds).build());
                         for (SpotInstanceRequest describeResponse : describeResponses.spotInstanceRequests()) {
-                            if (describeResponse.state() == SpotInstanceState.FAILED || describeResponse.state() == SpotInstanceState.ACTIVE) {
-                                if (describeResponse.state() == SpotInstanceState.FAILED) {
+                            log.debug("Something went wrong..");
+                            log.debug("{}", describeResponse.status());
+                            if (describeResponse.status().code().equalsIgnoreCase("price-too-low") || describeResponse.state() == SpotInstanceState.FAILED || describeResponse.state() == SpotInstanceState.ACTIVE) {
+                                if (describeResponse.state() == SpotInstanceState.FAILED || describeResponse.status().code().equalsIgnoreCase("price-too-low")) {
                                     completableFuture.completeExceptionally(new Exception(describeResponse.fault().message()));
                                     return;
                                 }
                                 instance = client.describeInstances(c -> c.instanceIds(describeResponse.instanceId())).reservations().get(0).instances().get(0);
                                 if (instance.publicIpAddress() != null) {
                                     completableFuture.complete(describeResponse);
-
                                     log.debug("Current Spot Instance: {}", describeResponse.instanceId());
                                     log.debug("Created Spot Instance At: {}", describeResponse.createTime());
-                                    log.debug("Found Spot Instance for bid:{}  quote:{}", describeResponse.actualBlockHourlyPrice(), avgRate);
+                                    log.debug("Found Spot Instance for bid:{}  quote:{}", describeResponse.actualBlockHourlyPrice(), selectedInstance.getValue());
                                     log.debug("Instance Public IP: {}", instance.publicIpAddress());
                                     return;
+                                } else if (secondPassed > 30) {
+                                    log.debug("Seconds exceeeds");
                                 }
                             }
                         }
                         Thread.sleep(1000);
+                        secondPassed++;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
