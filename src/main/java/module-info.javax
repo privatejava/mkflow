@@ -1,0 +1,28 @@
+module mkflow {
+    requires java.xml.crypto;
+    requires org.apache.commons.io;
+    requires org.apache.logging.log4j;
+    requires commons.cli;
+    requires jsch;
+    requires java.xml.bind;
+    requires software.amazon.awssdk.services.ec2;
+    requires software.amazon.awssdk.services.iam;
+    requires software.amazon.awssdk.regions;
+    requires software.amazon.awssdk.utils;
+    requires software.amazon.awssdk.services.ssm;
+    requires com.fasterxml.jackson.core;
+    requires org.yaml.snakeyaml;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.yaml;
+    requires org.mapstruct;
+    requires quarkus.bootstrap.runner;
+    requires quarkus.resteasy;
+    requires java.ws.rs;
+    requires json.path;
+    requires quarkus.core;
+    requires java.annotation;
+    requires org.eclipse.jgit;
+    requires jakarta.inject.api;
+    requires jakarta.enterprise.cdi.api;
+
+}
