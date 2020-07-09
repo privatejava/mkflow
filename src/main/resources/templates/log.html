@@ -90,6 +90,7 @@
       // hljs.initHighlightingOnLoad();
       // hljs.initLineNumbersOnLoad();
       var lastLine = 0;
+      var lastUpdated = 0;
       var timeOut = 100;
       var changedToBottom = true;
       let waitInterval = 3000;
@@ -157,10 +158,14 @@
         };
 
         var getLog = function() {
-          var params = { jobId: getParameterByName("jobId") };
+          var params = { from:1594261303, jobId: getParameterByName("jobId") };
           if (lastLine > 0) {
             params.line = lastLine;
           }
+          if(lastUpdated > 0){
+            params.from = lastUpdated;
+          }
+
 
           $.postJSON("/api/log", params, function(data) {
             if (data.length > 0) {
@@ -168,7 +173,12 @@
                 .addClass("lang-bash")
                 .attr("data-ln-start-from", lastLine);
               data.forEach(function(entry) {
-                code.append(entry + "\n");
+                if(entry.message.match(/.*\n$/g)){
+                  code.append(entry.message);
+                }else{
+                  code.append(entry.message + "\n");
+                }
+                lastUpdated = entry.time;
               });
               $("#logs").append(code);
               hljs.highlightBlock($(code).get(0));

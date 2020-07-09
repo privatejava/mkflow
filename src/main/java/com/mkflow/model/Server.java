@@ -151,6 +151,7 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
         return outputFile;
     }
 
+
     public void loadBuildspec(String file) throws Exception {
 
 
@@ -318,7 +319,7 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
     }
 
     private void writeLog(String msg) {
-        log.debug(msg);
+        log.debug("[{}:{}]:{}", uniqueId, new Date().getTime(), msg);
         try {
             Files.write(outputFile.toPath(), (msg + "\n").getBytes("utf-8"), StandardOpenOption.APPEND);
         } catch (IOException e) {
