@@ -1,6 +1,6 @@
 package com.mkflow.dto;
 
-import com.mkflow.model.AuthenticationMethod;
+import com.mkflow.model.auth.AuthenticationMethod;
 
 public class ConnectionParamDTO {
     private AuthenticationMethod authMethod;

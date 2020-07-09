@@ -1,5 +1,7 @@
 package com.mkflow.model;
 
+import com.mkflow.model.auth.AuthenticationMethod;
+
 public class KeyAuthDetail implements AuthDetail {
     private String privateKey;
 

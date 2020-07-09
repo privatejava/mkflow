@@ -1,6 +1,8 @@
 package com.mkflow.model;
 
 
+import com.mkflow.model.auth.AuthenticationMethod;
+
 public class ConnectionParam {
     private AuthenticationMethod authMethod;
 

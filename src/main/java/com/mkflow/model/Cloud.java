@@ -1,7 +1,11 @@
 package com.mkflow.model;
 
+import com.mkflow.model.auth.Authentication;
+
 public class Cloud {
     private CloudVendor vendor;
+
+    private Authentication auth;
 
     private Provision provision;
 
@@ -19,5 +23,13 @@ public class Cloud {
 
     public void setProvision(Provision provision) {
         this.provision = provision;
+    }
+
+    public Authentication getAuth() {
+        return auth;
+    }
+
+    public void setAuth(Authentication auth) {
+        this.auth = auth;
     }
 }
