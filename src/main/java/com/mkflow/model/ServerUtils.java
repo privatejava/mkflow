@@ -1,5 +1,6 @@
 package com.mkflow.model;
 
+import com.mkflow.model.auth.AuthenticationMethod;
 import com.mkflow.model.aws.AWSServer;
 
 public class ServerUtils {

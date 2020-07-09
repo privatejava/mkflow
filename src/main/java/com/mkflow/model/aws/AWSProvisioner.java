@@ -5,12 +5,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mkflow.model.AWSPermission;
 import com.mkflow.model.ProvisionerFactory;
 import com.mkflow.model.Server;
+import com.mkflow.model.auth.AWSBasicAuthentication;
 import com.mkflow.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.ec2.model.*;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.*;
@@ -53,8 +57,23 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
 
     private ArrayList<String> spotInstanceRequestIds = new ArrayList<String>();
 
+    private <T extends AwsClientBuilder> T clientBuilder(T builder) {
+        if (server.getCloud().getAuth() != null) {
+            if (server.getCloud().getAuth() instanceof AWSBasicAuthentication) {
+                AWSBasicAuthentication auth = (AWSBasicAuthentication) server.getCloud().getAuth();
+                builder.credentialsProvider(StaticCredentialsProvider.create(auth.getParams()));
+            }
+        }
+        if (server.getCloud().getProvision().getRegion() != null) {
+            builder.region(Region.of(server.getCloud().getProvision().getRegion()));
+        }
+        return builder;
+    }
+
     protected Ec2Client client() {
-        Ec2Client client = Ec2Client.builder().build();
+        Ec2ClientBuilder builder = Ec2Client.builder();
+        clientBuilder(builder);
+        Ec2Client client = builder.build();
         return client;
     }
 
@@ -77,7 +96,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
     }
 
     public CompletableFuture<StartSessionResponse> getSSH(String instanceId) {
-        SsmAsyncClient client = SsmAsyncClient.builder().build();
+        SsmAsyncClient client = clientBuilder(SsmAsyncClient.builder()).build();
         StartSessionRequest request = StartSessionRequest.builder().target(instanceId)
             .build();
         CompletableFuture<StartSessionResponse> startSessionResponseCompletableFuture = client.startSession(request);
@@ -180,7 +199,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
 
 
     public void fixIamPermission() throws ExecutionException, InterruptedException {
-        IamAsyncClient iamClient = IamAsyncClient.builder().region(Region.AWS_GLOBAL).build();
+        IamAsyncClient iamClient = clientBuilder(IamAsyncClient.builder()).region(Region.AWS_GLOBAL).build();
         ListInstanceProfilesResponse profiles = iamClient.listInstanceProfiles().get();
 
         if (!profiles.hasInstanceProfiles()) {
@@ -352,7 +371,6 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                             .describeSpotInstanceRequests(DescribeSpotInstanceRequestsRequest.builder()
                                 .spotInstanceRequestIds(spotInstanceRequestIds).build());
                         for (SpotInstanceRequest describeResponse : describeResponses.spotInstanceRequests()) {
-                            log.debug("Something went wrong..");
                             log.debug("{}", describeResponse.status());
                             if (describeResponse.status().code().equalsIgnoreCase("price-too-low") || describeResponse.state() == SpotInstanceState.FAILED || describeResponse.state() == SpotInstanceState.ACTIVE) {
                                 if (describeResponse.state() == SpotInstanceState.FAILED || describeResponse.status().code().equalsIgnoreCase("price-too-low")) {
@@ -413,24 +431,23 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
         if (!spotInstanceRequestIds.isEmpty()) {
             client.cancelSpotInstanceRequests(CancelSpotInstanceRequestsRequest.builder().spotInstanceRequestIds(spotInstanceRequestIds).build());
         }
-
         if (instance != null) {
             log.debug("Terminating: {}", instance.instanceId());
             terminateInstance(instance);
-            if (keyPairName != null) {
-                try {
-                    log.debug("Deleting Key Pair: {}", keyPairName);
-                    FileUtils.cleanDirectory(Utils.getSshDir());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                client.deleteKeyPair(e -> e.keyName(keyPairName));
-            }
-            if (securityGroupId != null) {
-                log.debug("Deleting Security Group: {}", securityGroupId);
-                client.deleteSecurityGroup(e -> e.groupId(securityGroupId));
-            }
-            Utils.getExecutorService().shutdown();
         }
+        if (keyPairName != null) {
+            try {
+                log.debug("Deleting Key Pair: {}", keyPairName);
+                FileUtils.cleanDirectory(Utils.getSshDir());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            client.deleteKeyPair(e -> e.keyName(keyPairName));
+        }
+        if (securityGroupId != null) {
+            log.debug("Deleting Security Group: {}", securityGroupId);
+            client.deleteSecurityGroup(e -> e.groupId(securityGroupId));
+        }
+        Utils.getExecutorService().shutdown();
     }
 }

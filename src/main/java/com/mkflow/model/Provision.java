@@ -7,6 +7,8 @@ public class Provision {
 
     private List<String> instanceType;
 
+    private String region;
+
     private List<IAMPermission> permission;
 
     public ProvisionType getType() {
@@ -31,5 +33,13 @@ public class Provision {
 
     public void setPermission(List<IAMPermission> permission) {
         this.permission = permission;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getRegion() {
+        return region;
     }
 }
