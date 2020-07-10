@@ -3,7 +3,7 @@ package com.mkflow.utils;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import io.quarkus.launcher.shaded.org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.taskdefs.optional.ssh.ScpFromMessage;
 import org.apache.tools.ant.taskdefs.optional.ssh.ScpToMessage;
 
