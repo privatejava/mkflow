@@ -2,8 +2,8 @@ package com.mkflow.service;
 
 import com.mkflow.model.Server;
 import com.mkflow.utils.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Collections;
@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class JobQueueService {
-    private static final Logger log = LogManager.getLogger(JobQueueService.class);
+    private static final Logger log = LoggerFactory.getLogger(JobQueueService.class);
 
     private Map<String, Server> jobs;
 

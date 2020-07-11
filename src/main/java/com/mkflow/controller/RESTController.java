@@ -25,11 +25,11 @@ import com.mkflow.service.JobQueueService;
 import com.mkflow.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 @Produces("application/json")
 public class RESTController {
 
-    private static final Logger log = LogManager.getLogger(RESTController.class);
+    private static final Logger log = LoggerFactory.getLogger(RESTController.class);
 
     @Context
     HttpServerRequest request;

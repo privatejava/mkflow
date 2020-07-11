@@ -6,14 +6,14 @@ import com.mkflow.model.Server;
 import com.mkflow.model.ServerUtils;
 import com.mkflow.model.auth.AuthenticationMethod;
 import org.apache.commons.cli.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 
 public class Runner {
-    private static final Logger log = LogManager.getLogger(Runner.class);
+    private static final Logger log = LoggerFactory.getLogger(Runner.class);
 
     public static void main(String[] args) {
         CommandLineParser parser = new DefaultParser();

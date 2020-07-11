@@ -4,14 +4,14 @@ package com.mkflow.model;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.Session;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 
 public class S3CacheProvider implements CacheProvider {
-    private static final Logger log = LogManager.getLogger(S3CacheProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(S3CacheProvider.class);
 
     private Session session;
 

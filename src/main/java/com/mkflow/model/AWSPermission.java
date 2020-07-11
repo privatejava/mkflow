@@ -2,13 +2,13 @@ package com.mkflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class AWSPermission implements IAMPermission {
-    private static final Logger log = LogManager.getLogger(AWSPermission.class);
+    private static final Logger log = LoggerFactory.getLogger(AWSPermission.class);
 
     @JsonProperty("Action")
     private List<String> action;

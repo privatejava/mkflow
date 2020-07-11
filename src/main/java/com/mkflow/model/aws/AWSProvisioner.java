@@ -8,8 +8,8 @@ import com.mkflow.model.Server;
 import com.mkflow.model.auth.AWSBasicAuthentication;
 import com.mkflow.utils.Utils;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 
 public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
-    private static final Logger log = LogManager.getLogger(AWSProvisioner.class);
+    private static final Logger log = LoggerFactory.getLogger(AWSProvisioner.class);
 
     private String keyPairName;
 

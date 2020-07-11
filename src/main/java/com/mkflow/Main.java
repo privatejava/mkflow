@@ -9,8 +9,8 @@ import com.mkflow.model.aws.AWSProvisioner;
 import com.mkflow.model.aws.AWSServer;
 import com.mkflow.utils.Utils;
 import io.quarkus.runtime.QuarkusApplication;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Instance;
 
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main implements QuarkusApplication {
-    private static final Logger log = LogManager.getLogger(Main.class);
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     @Override
     public int run(String... args) throws Exception {

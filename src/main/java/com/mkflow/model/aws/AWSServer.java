@@ -5,14 +5,14 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.mkflow.model.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ec2.model.SpotInstanceRequest;
 
 import java.util.concurrent.CompletableFuture;
 
 public class AWSServer extends Server<SpotInstanceRequest> {
-    private static final Logger log = LogManager.getLogger(AWSServer.class);
+    private static final Logger log = LoggerFactory.getLogger(AWSServer.class);
 
     @JsonIgnore
     private Session session;

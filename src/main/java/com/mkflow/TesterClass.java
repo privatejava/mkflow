@@ -6,8 +6,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.mkflow.utils.JschFileTransfer;
 import com.mkflow.utils.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class TesterClass {
-    private static final Logger log = LogManager.getLogger(TesterClass.class);
+    private static final Logger log = LoggerFactory.getLogger(TesterClass.class);
 
     public static void main(String[] args) throws JSchException, IOException {
         String ip = "18.182.19.145";

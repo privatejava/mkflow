@@ -3,8 +3,8 @@ package com.mkflow.model;
 import com.jcraft.jsch.*;
 import com.mkflow.utils.JschFileTransfer;
 import com.mkflow.utils.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class Server<T> implements ProvisionerFactory<T> {
-    private static final Logger log = LogManager.getLogger(Server.class);
+    private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     protected List<BuildSpecParser> buildspecParsers;
 
