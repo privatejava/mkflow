@@ -1,12 +1,6 @@
 package com.mkflow.controller;
 
 
-import com.amazonaws.services.logs.AWSLogs;
-import com.amazonaws.services.logs.AWSLogsClient;
-import com.amazonaws.services.logs.model.GetQueryResultsRequest;
-import com.amazonaws.services.logs.model.GetQueryResultsResult;
-import com.amazonaws.services.logs.model.ResultField;
-import com.amazonaws.services.logs.model.StartQueryRequest;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +12,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.mkflow.dto.RunServerDTO;
-import com.mkflow.mapper.CodebaseMapper;
 import com.mkflow.model.*;
 import com.mkflow.model.auth.AWSBasicAuthentication;
 import com.mkflow.model.auth.Authentication;
@@ -43,8 +36,6 @@ import javax.ws.rs.core.Context;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -111,46 +102,46 @@ public class RESTController {
 
     private CompletableFuture<List<LogMessage>> getResult(String uniqueId, Long from){
         CompletableFuture<List<LogMessage>> completeFuture = new CompletableFuture<>();
-        Utils.getExecutorService().submit(()->{
-            AWSLogs client = AWSLogsClient.builder().build();
-            StartQueryRequest request= new StartQueryRequest();
-            request.setLimit(20);
-            request.setLogGroupName("/aws/lambda/lead-api-staging-leadApi");
-            request.setStartTime(from);
-            request.setEndTime(new Date().getTime()/1000L);
-            request.setQueryString("fields @timestamp, @message\n" +
-                "                       | sort @timestamp desc");
-            GetQueryResultsResult queryRes = null;
-            String queryId = client.startQuery(request).getQueryId();
-            while(queryRes==null || queryRes.getStatus().equalsIgnoreCase("running")){
-                GetQueryResultsRequest req2 = new GetQueryResultsRequest();
-                req2.setQueryId(queryId);
-                queryRes = client.getQueryResults(req2);
-                log.debug("{}:{}", req2,queryRes.getStatus() );
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            completeFuture.complete(queryRes.getResults().stream().map(m-> {
-                Optional<ResultField> msg = m.stream().filter(f -> f.getField().equalsIgnoreCase("@message")).findFirst();
-                Optional<ResultField> time = m.stream().filter(f -> f.getField().equalsIgnoreCase("@timestamp")).findFirst();
-                if(msg.isPresent() && time.isPresent()){
-                    LogMessage message = new LogMessage();
-                    message.setMessage(msg.get().getValue());
-                    try {
-                        SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss.SSS");
-                        message.setTime(format.parse(time.get().getValue()).getTime()/1000);
-                        return message;
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList()));
-        });
+//        Utils.getExecutorService().submit(()->{
+//            AWSLogs client = AWSLogsClient.builder().build();
+//            StartQueryRequest request= new StartQueryRequest();
+//            request.setLimit(20);
+//            request.setLogGroupName("/aws/lambda/lead-api-staging-leadApi");
+//            request.setStartTime(from);
+//            request.setEndTime(new Date().getTime()/1000L);
+//            request.setQueryString("fields @timestamp, @message\n" +
+//                "                       | sort @timestamp desc");
+//            GetQueryResultsResult queryRes = null;
+//            String queryId = client.startQuery(request).getQueryId();
+//            while(queryRes==null || queryRes.getStatus().equalsIgnoreCase("running")){
+//                GetQueryResultsRequest req2 = new GetQueryResultsRequest();
+//                req2.setQueryId(queryId);
+//                queryRes = client.getQueryResults(req2);
+//                log.debug("{}:{}", req2,queryRes.getStatus() );
+//                try {
+//                    Thread.sleep(1000L);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            completeFuture.complete(queryRes.getResults().stream().map(m-> {
+//                Optional<ResultField> msg = m.stream().filter(f -> f.getField().equalsIgnoreCase("@message")).findFirst();
+//                Optional<ResultField> time = m.stream().filter(f -> f.getField().equalsIgnoreCase("@timestamp")).findFirst();
+//                if(msg.isPresent() && time.isPresent()){
+//                    LogMessage message = new LogMessage();
+//                    message.setMessage(msg.get().getValue());
+//                    try {
+//                        SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss.SSS");
+//                        message.setTime(format.parse(time.get().getValue()).getTime()/1000);
+//                        return message;
+//                    } catch (ParseException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                return null;
+//            }).filter(Objects::nonNull).collect(Collectors.toList()));
+//        });
         return completeFuture;
     }
 
