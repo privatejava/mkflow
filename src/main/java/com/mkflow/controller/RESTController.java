@@ -63,8 +63,8 @@ public class RESTController {
     @Context
     HttpServerRequest request;
 
-    @Inject
-    private CodebaseMapper codebaseMapper;
+//    @Inject
+//    private CodebaseMapper codebaseMapper;
 
     @Inject
     private JobQueueService jobQueueService;
@@ -157,10 +157,10 @@ public class RESTController {
     @Path("run")
     @POST
     public Map<String, String> run(RunServerDTO dto) throws Exception {
-        Server server = ServerUtils.create(dto.getType(), dto.getCommands(), dto.getParams().getAuthMethod(),
-            dto.getParams().getDetail().getUsername(), dto.getParams().getDetail().getPassword(), dto.getProvisionType(), codebaseMapper.fromDTO(dto.getCodebase()));
+//        Server server = ServerUtils.create(dto.getType(), dto.getCommands(), dto.getParams().getAuthMethod(),
+//            dto.getParams().getDetail().getUsername(), dto.getParams().getDetail().getPassword(), dto.getProvisionType(), codebaseMapper.fromDTO(dto.getCodebase()));
         Map<String, String> result = new HashMap<>();
-        result.put("jobId", jobQueueService.addJob(server));
+//        result.put("jobId", jobQueueService.addJob(server));
         return result;
     }
 

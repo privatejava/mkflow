@@ -2,11 +2,9 @@ package com.mkflow.mapper;
 
 import com.mkflow.dto.ServerDTO;
 import com.mkflow.model.Server;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mappings;
 
-@Mapper(componentModel = "cdi")
+//@Mapper(componentModel = "cdi")
 public interface ServerMapper {
-    @Mappings({})
+//    @Mappings({})
     ServerDTO toDTO(Server server);
 }
