@@ -12,8 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 import com.mkflow.dto.RunServerDTO;
 import com.mkflow.mapper.CodebaseMapper;
 import com.mkflow.model.*;
@@ -216,7 +218,7 @@ public class RESTController {
             Map map = mapper.readValue(mkFlowFile, Map.class);
             SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
             SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-            DocumentContext parse = JsonPath.parse(map);
+            DocumentContext parse = JsonPath.parse(map, Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS));
             if (map != null && map.containsKey("cloud")) {
                 CloudVendor vendor = CloudVendor.parse(((Map) map.get("cloud")).get("vendor").toString());
                 Server server = null;

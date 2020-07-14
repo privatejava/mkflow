@@ -319,9 +319,10 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
     }
 
     private void writeLog(String msg) {
-        log.debug("[{}:{}]:{}", uniqueId, new Date().getTime(), msg);
+        String formattedMsg = String.format("[%s:%d]:%s",uniqueId, new Date().getTime(), msg);
+        log.debug("{}", formattedMsg);
         try {
-            Files.write(outputFile.toPath(), (msg + "\n").getBytes("utf-8"), StandardOpenOption.APPEND);
+            Files.write(outputFile.toPath(), (formattedMsg + "\n").getBytes("utf-8"), StandardOpenOption.APPEND);
         } catch (IOException e) {
             e.printStackTrace();
         }
