@@ -1,0 +1,61 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+
+  pre_build:
+    commands:
+      - sudo su
+      # `ok` try 6 script  for running post build only when build succeeded
+#      - echo '#!/bin/bash' > /usr/local/bin/ok; echo 'if [[ "$CODEBUILD_BUILD_SUCCEEDING" == "0" ]]; then exit 1; else exit 0; fi' >> /usr/local/bin/ok; chmod +x /usr/local/bin/ok
+      - ls -al
+      - aws --version
+      - sudo yum -y -q install zip jq gcc glibc-devel zlib-devel libstdc++-static
+      - |
+        curl -s https://api.github.com/repos/graalvm/graalvm-ce-builds/releases/latest | \
+        grep "browser_download_url.*java11.*linux-amd64.*.tar.gz" | \
+        cut -d '"' -f 4 | \
+        tr -d \" | \
+        wget -qi -
+      - ls -al && mv graalvm*.tar.gz /tmp/graalvm.tar.gz
+      - WORK_DIR=$(pwd)
+      - cd /tmp/ && tar -xf graa*.tar.gz
+      - export GRAALVM_HOME="$(find /tmp -type d -name "graalvm*" -print -quit)"
+      - export JAVA_HOME=$GRAALVM_HOME
+      - echo $JAVA_HOME && $JAVA_HOME/bin/java --version
+      - ${GRAALVM_HOME}/bin/gu install native-image
+      - |
+        wget -O /tmp/maven.tar.gz https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
+        cd /tmp && tar -xf maven.tar.gz && \
+        export M2_HOME="$(find /tmp -type d -name "apache-maven*" -print -quit)" && \
+        export PATH=$PATH:$M2_HOME/bin
+      - cd $WORK_DIR
+      - echo $WORK_DIR
+      - ls -al
+  build:
+    commands:
+#      - ok && echo Build started on  `date`
+      - mvn clean package -P lambda
+      - ls -al
+      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+      - source ~/.bashrc
+      - nvm install 12.18.1
+      - npm install --unsafe-perm
+      - ./node_modules/.bin/serverless deploy
+
+  post_build:
+    commands:
+#      - ok && echo Build completed on `date`
+
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - "**/*.yml"
+    - "target/function.zip"
+
+cache:
+  paths:
+    - "/root/.m2"

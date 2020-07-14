@@ -137,11 +137,11 @@
 <!--        </dependency>-->
 
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-nop</artifactId>
-            <version>1.7.28</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.slf4j</groupId>-->
+<!--            <artifactId>slf4j-nop</artifactId>-->
+<!--            <version>1.7.28</version>-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>software.amazon.awscdk</groupId>-->
 <!--            <artifactId>iam</artifactId>-->
@@ -383,9 +383,13 @@
 
             <properties>
                 <quarkus.native.additional-build-args>
+                    --verbose,
+                    --initialize-at-build-time,
                     -H:+AllowIncompleteClasspath,
-                    -H:ReflectionConfigurationFiles=reflection-config.json,
-                    -H:IncludeResources=templates/.*
+                    -H:+TraceClassInitialization,
+                    -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
+                    -H:IncludeResources=templates/.*,
+                    -H:+ReportUnsupportedElementsAtRuntime
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>
@@ -455,7 +459,8 @@
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
-                    --report-unsupported-elements-at-runtime
+                    -H:IncludeResources=templates/.*,
+                    -H:+ReportUnsupportedElementsAtRuntime
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>

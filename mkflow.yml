@@ -1,0 +1,76 @@
+cloud:
+  vendor: "aws"
+  auth:
+    type: "params"
+
+  provision:
+    type: "market"
+    instanceType: ["t2.xlarge", "t3.xlarge"]
+    region: ap-southeast-1
+    permission:
+      - Effect: Allow
+        Action:
+          - iam:GetRole
+          - lambda:InvokeFunction
+          - lambda:Update*
+          - iam:CreateRole
+          - iam:DeleteRole
+          - iam:PutRolePolicy
+          - iam:PassRole
+          - lambda:AddPermission
+          - cloudformation:CreateStack
+          - iam:DeleteRolePolicy
+          - cloudformation:DeleteStack
+          - cloudformation:UpdateStack
+          - lambda:DeleteFunction
+          - lambda:PublishVersion
+          - lambda:RemovePermission
+          - lambda:CreateAlias
+        Resource:
+          - arn:aws:lambda:*:*:function:mkflow-*
+          - arn:aws:iam::*:role/mkflow-*
+          - arn:aws:cloudformation:*:*:stack/mkflow-*
+
+      - Effect: Allow
+        Action:
+          - lambda:CreateFunction
+          - logs:DescribeLogGroups
+          - apigateway:*
+          - lambda:List*
+          - logs:DeleteLogGroup
+          - s3:*
+          - logs:DescribeLogStreams
+          - logs:PutSubscriptionFilter
+          - route53:ListHostedZones
+          - lambda:Get*
+          - logs:CreateLogGroup
+          - logs:PutLogEvents
+          - cloudformation:Describe*
+          - cloudformation:PreviewStackUpdate
+          - logs:CreateLogStream
+          - acm:ListCertificates
+          - apigateway:POST
+          - apigateway:GET
+          - logs:PutRetentionPolicy
+          - cloudformation:List*
+          - cloudformation:ValidateTemplate
+          - cloudformation:Get*
+        Resource: ["*"]
+
+container:
+  auth:
+    username: "ec2-user"
+    type: "key"
+
+build:
+  commands:
+    - "./commands.yml"
+  repo:
+    uri: "https://github.com/privatejava/mkflow"
+    auth:
+      type: "token"
+
+  cache:
+    type: s3
+    location: s3://code-pipeline-seepanel/mkflow
+

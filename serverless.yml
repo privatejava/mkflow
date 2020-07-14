@@ -1,0 +1,42 @@
+service: mkflow
+
+plugins:
+  - serverless-domain-manager
+
+
+
+provider:
+  name: aws
+  runtime: provided
+  memorySize: 1024
+  stage: ${opt:stage, 'staging'}
+  region: ap-southeast-1
+  timeout: 30
+  versionFunctions: false
+  tracing:
+  lambda: true
+  environment:
+    QUARKUS_PROFILE: ${opt:stage, 'staging'}
+    DISABLE_SIGNAL_HANDLERS: true
+  logRetentionInDays: 365
+  deploymentBucket:
+    serverSideEncryption: AES256
+
+  iamRoleStatements:
+    - Effect: 'Allow' # Glue Access
+      Action:
+        - "glue:*"
+      "Resource": "*"
+
+package:
+  artifact: target/function.zip
+
+functions:
+  leadApi:
+    handler: not.used.in.provided.runtimei
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true
+

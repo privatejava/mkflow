@@ -1,0 +1,25 @@
+{
+  "name": "mkflow",
+  "version": "1.0.0",
+  "description": "This project uses Quarkus, the Supersonic Subatomic Java Framework.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/privatejava/mkflow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/privatejava/mkflow/issues"
+  },
+  "homepage": "https://github.com/privatejava/mkflow#readme",
+  "dependencies": {
+    "serverless": "^1.74.0"
+  },
+  "devDependencies": {
+    "serverless-domain-manager": "^4.1.1"
+  }
+}
