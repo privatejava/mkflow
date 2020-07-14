@@ -449,8 +449,7 @@
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
-                    -H:IncludeResources=templates/.*,
-                    -H:+ReportUnsupportedElementsAtRuntime
+                    -H:IncludeResources=templates/.*
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>

@@ -88,7 +88,7 @@ public class RESTController {
                     return lines.skip(line).limit(500).map(l->{
                         Pattern compile = Pattern.compile("\\[(.*):(.*)\\]:(.*)");
                         Matcher matcher = compile.matcher(l);
-                        if(matcher.matches() && matcher.groupCount() > 3){
+                        if(matcher.matches() && matcher.groupCount() >= 3){
                             String uniqueId = matcher.group(1);
                             Long time = Long.parseLong(matcher.group(2));
                             LogMessage message = new LogMessage();
