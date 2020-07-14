@@ -51,8 +51,8 @@ public class RESTController {
 
     private static final Logger log = LoggerFactory.getLogger(RESTController.class);
 
-    @Context
-    HttpServerRequest request;
+//    @Context
+//    HttpServerRequest request;
 
 //    @Inject
 //    private CodebaseMapper codebaseMapper;
@@ -159,46 +159,46 @@ public class RESTController {
     @POST
     public Map<String, String> hook(Map json) throws Exception {
         Map resp = new HashMap();
-        if (request.getHeader("x-github-event") != null && request.getParam("token") != null) {
-            resp.put("github", "true");
-            String token = request.getParam("token");
-            DocumentContext doc = JsonPath.parse(json);
-            String url = doc.read("$.repository.url", String.class);
-            String branch = doc.read("$.ref", String.class);
-            resp.put("url", url);
-            java.nio.file.Path test = Files.createTempDirectory("test");
-            CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
-            Git git = Git.cloneRepository()
-                .setURI(url)
-                .setDirectory(test.toFile())
-                .setBranchesToClone(Arrays.asList(branch))
-                .setCredentialsProvider(credentialsProvider)
-                .call();
-
-            processGit(test,resp);
-
-            resp.put("dir", test.toString());
-        } else if (request.getHeader("x-gogs-event") != null && request.getParam("user") != null && request.getParam("pass") != null){
-            resp.put("gogs", "true");
-            String user = request.getParam("user");
-            String pass = request.getParam("pass");
-            DocumentContext doc = JsonPath.parse(json);
-            String url = doc.read("$.repository.html_url", String.class);
-            String branch = doc.read("$.ref", String.class);
-            resp.put("url", url);
-            java.nio.file.Path test = Files.createTempDirectory("test");
-            log.debug("{}", test);
-            CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(user, pass);
-            Git git = Git.cloneRepository()
-                .setURI(url)
-                .setDirectory(test.toFile())
-                .setBranchesToClone(Arrays.asList(branch))
-                .setCredentialsProvider(credentialsProvider)
-                .call();
-            processGit(test,resp);
-        } else{
+//        if (request.getHeader("x-github-event") != null && request.getParam("token") != null) {
+//            resp.put("github", "true");
+//            String token = request.getParam("token");
+//            DocumentContext doc = JsonPath.parse(json);
+//            String url = doc.read("$.repository.url", String.class);
+//            String branch = doc.read("$.ref", String.class);
+//            resp.put("url", url);
+//            java.nio.file.Path test = Files.createTempDirectory("test");
+//            CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
+//            Git git = Git.cloneRepository()
+//                .setURI(url)
+//                .setDirectory(test.toFile())
+//                .setBranchesToClone(Arrays.asList(branch))
+//                .setCredentialsProvider(credentialsProvider)
+//                .call();
+//
+//            processGit(test,resp);
+//
+//            resp.put("dir", test.toString());
+//        } else if (request.getHeader("x-gogs-event") != null && request.getParam("user") != null && request.getParam("pass") != null){
+//            resp.put("gogs", "true");
+//            String user = request.getParam("user");
+//            String pass = request.getParam("pass");
+//            DocumentContext doc = JsonPath.parse(json);
+//            String url = doc.read("$.repository.html_url", String.class);
+//            String branch = doc.read("$.ref", String.class);
+//            resp.put("url", url);
+//            java.nio.file.Path test = Files.createTempDirectory("test");
+//            log.debug("{}", test);
+//            CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(user, pass);
+//            Git git = Git.cloneRepository()
+//                .setURI(url)
+//                .setDirectory(test.toFile())
+//                .setBranchesToClone(Arrays.asList(branch))
+//                .setCredentialsProvider(credentialsProvider)
+//                .call();
+//            processGit(test,resp);
+//        } else{
             resp.put("github", "false");
-        }
+//        }
         return resp;
     }
 
