@@ -1,7 +1,6 @@
 cloud:
   vendor: "aws"
-  auth:
-    type: "params"
+
 
   provision:
     type: "market"
