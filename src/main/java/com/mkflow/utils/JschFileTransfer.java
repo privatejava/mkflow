@@ -3,9 +3,9 @@ package com.mkflow.utils;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.taskdefs.optional.ssh.ScpFromMessage;
 import org.apache.tools.ant.taskdefs.optional.ssh.ScpToMessage;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,7 +160,7 @@ public final class JschFileTransfer {
         ChannelExec channel = (ChannelExec) jschSession.openChannel("exec");
         // NOTE: the provided paths are expected to require no escaping
         String fullCommand = mkdirCommandPrefix + "cp " + source + " " + target;
-        LogFactory.getLog(JschFileTransfer.class).debug("Performing remote copy: " + fullCommand);
+        LoggerFactory.getLogger(JschFileTransfer.class).debug("Performing remote copy: " + fullCommand);
         channel.setCommand(fullCommand);
         channel.connect();
         while (!channel.isClosed()) {

@@ -27,7 +27,7 @@ package:
   artifact: target/function.zip
 
 functions:
-  leadApi:
+  api:
     handler: not.used.in.provided.runtimei
     events:
       - http:

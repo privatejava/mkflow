@@ -13,11 +13,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.SpotInstanceRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class Main implements QuarkusApplication {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -26,18 +28,18 @@ public class Main implements QuarkusApplication {
     public int run(String... args) throws Exception {
         AWSServer server = new AWSServer();
         try {
-            Provision provision = new Provision();
-            provision.setType(ProvisionType.MARKET);
-            server.getCloud().setProvision(provision);
-            AWSProvisioner provisioner = server.getProvisioner();
-            // For provision
-//            CompletableFuture<SpotInstanceRequest> provision = server.provision();
-//            SpotInstanceRequest spotInstanceRequest = provision.get();
-//            AWSProvisioner provisioner = server.getProvisioner();
-//            log.debug("Sleeping 30 sec " );
-//            Thread.sleep(30000L);
+            Provision awsProvision = new Provision();
+            awsProvision.setType(ProvisionType.MARKET);
+            server.getCloud().setProvision(awsProvision);
 
-            String instanceId = "i-01cb172dd357611a6";// spotInstanceRequest.instanceId();
+            // For provision
+            AWSProvisioner provisioner = server.getProvisioner();
+            CompletableFuture<SpotInstanceRequest> provision = server.provision();
+            SpotInstanceRequest spotInstanceRequest = provision.get();
+            log.debug("Sleeping 30 sec " );
+            Thread.sleep(30000L);
+
+            String instanceId =  spotInstanceRequest.instanceId();
             Instance instance = Ec2Client.create().describeInstances(c -> c.instanceIds(instanceId)).reservations().get(0).instances().get(0);
             JSch jsch = new JSch();
             jsch.addIdentity(Utils.getSshDir().toPath().resolve("id_rsa").toString());

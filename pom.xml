@@ -21,20 +21,20 @@
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>2.11.0</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-bom</artifactId>
-                <version>2.13.3</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.fasterxml.jackson</groupId>-->
+<!--                <artifactId>jackson-bom</artifactId>-->
+<!--                <version>2.11.0</version>-->
+<!--                <scope>import</scope>-->
+<!--                <type>pom</type>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.apache.logging.log4j</groupId>-->
+<!--                <artifactId>log4j-bom</artifactId>-->
+<!--                <version>2.13.3</version>-->
+<!--                <scope>import</scope>-->
+<!--                <type>pom</type>-->
+<!--            </dependency>-->
 <!--            <dependency>-->
 <!--                <groupId>software.amazon.awssdk</groupId>-->
 <!--                <artifactId>bom</artifactId>-->
@@ -88,12 +88,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-jackson</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.xml.bind</groupId>
-                    <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-                </exclusion>
-            </exclusions>
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.jboss.spec.javax.xml.bind</groupId>-->
+<!--                    <artifactId>jboss-jaxb-api_2.3_spec</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -112,7 +112,8 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ec2</artifactId>
         </dependency>
-<!--        <dependency>-->
+
+        <!--        <dependency>-->
 <!--            <groupId>software.amazon.awssdk</groupId>-->
 <!--            <artifactId>cloudwatch</artifactId>-->
 <!--        </dependency>-->
@@ -126,7 +127,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/software.amazon.jsii/jsii-runtime -->
@@ -166,7 +166,6 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.26</version>
         </dependency>
 
 
@@ -210,7 +209,6 @@
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jzlib</artifactId>
-            <version>1.1.3</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
@@ -228,7 +226,7 @@
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant-jsch</artifactId>
-            <version>1.10.8</version>
+            <version>1.10.5</version>
         </dependency>
 
         <dependency>
@@ -243,11 +241,11 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/javax.jmdns/jmdns -->
-        <dependency>
-            <groupId>javax.jmdns</groupId>
-            <artifactId>jmdns</artifactId>
-            <version>3.4.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>javax.jmdns</groupId>-->
+<!--            <artifactId>jmdns</artifactId>-->
+<!--&lt;!&ndash;            <version>3.4.1</version>&ndash;&gt;-->
+<!--        </dependency>-->
 
     </dependencies>
     <build>
@@ -268,7 +266,7 @@
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus.version}</version>
+<!--                <version>${quarkus.version}</version>-->
                 <executions>
                     <execution>
                         <goals>
@@ -340,7 +338,7 @@
                     <plugin>
                         <groupId>io.quarkus</groupId>
                         <artifactId>quarkus-maven-plugin</artifactId>
-                        <version>${quarkus.version}</version>
+<!--                        <version>${quarkus.version}</version>-->
                         <configuration>
                             <uberJar>true</uberJar>
                         </configuration>
@@ -411,7 +409,7 @@
                     <plugin>
                         <groupId>io.quarkus</groupId>
                         <artifactId>quarkus-maven-plugin</artifactId>
-                        <version>${quarkus.version}</version>
+<!--                        <version>${quarkus.version}</version>-->
                         <configuration>
                             <uberJar>true</uberJar>
                         </configuration>
