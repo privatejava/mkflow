@@ -8,7 +8,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,7 @@ public class AWSBuildspecParser extends BuildSpecParser {
     public Buildspec parse(InputStream inputStream) {
         Buildspec buildspec = null;
         try {
-            String json = convertYamlToJson(IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()));
+            String json = convertYamlToJson(IOUtils.toString(inputStream, "utf-8"));
             DocumentContext doc = JsonPath.parse(json);
             List<Command> install = getCommands(doc, "$.phases.install.commands");
             List<Command> pre = getCommands(doc, "$.phases.pre_build.commands");
