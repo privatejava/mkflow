@@ -8,6 +8,7 @@ phases:
   pre_build:
     commands:
       - sudo su
+      - mkdir -p /tmp/home && export HOME=/tmp/home
       # `ok` try 6 script  for running post build only when build succeeded
 #      - echo '#!/bin/bash' > /usr/local/bin/ok; echo 'if [[ "$CODEBUILD_BUILD_SUCCEEDING" == "0" ]]; then exit 1; else exit 0; fi' >> /usr/local/bin/ok; chmod +x /usr/local/bin/ok
       - ls -al
