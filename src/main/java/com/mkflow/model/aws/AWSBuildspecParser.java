@@ -34,15 +34,15 @@ public class AWSBuildspecParser extends BuildSpecParser {
             List<Command> build = getCommands(map, "phases.build.commands");
             List<Command> post = getCommands(map, "phases.post_build.commands");
             CachePath cachePath = Utils.getByPath(map,"cache", CachePath.class);
-//            if (install == null && pre == null && build == null && post == null) {
-//                return null;
-//            }
+            if (install == null && pre == null && build == null && post == null) {
+                return null;
+            }
             buildspec = new Buildspec();
-//            buildspec.setInstall(new Phase(install));
-//            buildspec.setPreBuild(new Phase(pre));
-//            buildspec.setBuild(new Phase(build));
-//            buildspec.setPostBuild(new Phase(post));
-//            buildspec.setCache(cachePath);
+            buildspec.setInstall(new Phase(install));
+            buildspec.setPreBuild(new Phase(pre));
+            buildspec.setBuild(new Phase(build));
+            buildspec.setPostBuild(new Phase(post));
+            buildspec.setCache(cachePath);
 
         } catch (IOException e) {
             e.printStackTrace();

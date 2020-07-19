@@ -26,10 +26,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +67,12 @@ public class RESTController {
 	@Inject
 	ObjectMapper mapper;
 
+	@Path("hello")
+	@GET
+	public String hello(){
+		log.debug("{}",System.getProperties());
+		return "hello";
+	}
 
 	@Path("log")
 	@POST
@@ -194,7 +197,7 @@ public class RESTController {
 					.setBranchesToClone(Arrays.asList(branch))
 					.setCredentialsProvider(credentialsProvider)
 					.call();
-//            processGit(test,resp);
+            processGit(test,resp);
 			resp.put("dir", test.toString());
 //            DocumentContext doc = JsonPath.parse(json);
 //            String url = doc.read("$.repository.url", String.class);
@@ -259,15 +262,15 @@ public class RESTController {
 //            }
 //            DocumentContext parse = JsonPath.parse(map, Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS));
 			if (map != null && map.containsKey("cloud")) {
-				CloudVendor vendor = CloudVendor.parse(((Map) map.get("cloud")).get("vendor").toString());
+				CloudVendor vendor = CloudVendor.parse(Utils.getByPath(map,"cloud.vendor",String.class));
 				Server server = null;
 				switch (vendor) {
 					case AMAZON:
 //                        if(jsonpath.getString("$.cloud.auth") != null && jsonpath.getString("cloud.auth.type")!= null){
 //                        if(jsonpath.read("$.cloud.auth") != null && jsonpath.read("cloud.auth.type")!= null){
-						if (map.containsKey("cloud") && ((Map) map.get("cloud")).containsKey("auth") &&
-								((Map) ((Map) map.get("cloud")).get("auth")).containsKey("type")) {
-							AuthenticationMethod method = AuthenticationMethod.parse(((Map) ((Map) map.get("cloud")).get("auth")).get("type").toString());
+						if (Utils.getByPath(map,"cloud.auth",Map.class) !=null &&
+								Utils.getByPath(map,"cloud.auth.type",String.class) !=null) {
+							AuthenticationMethod method = AuthenticationMethod.parse(Utils.getByPath(map,"cloud.auth.type",String.class));
 							switch (method) {
 								case USER_PASS:
 									log.debug("Auth type: {}", method);

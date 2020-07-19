@@ -181,7 +181,7 @@ public class Utils {
                 }
 
                 if(i+1 == allPaths.length){
-                    return (T)val;
+                    return (T) (returnType.isInstance(val) ?val:new ObjectMapper().convertValue(val,returnType));
                 }else{
                     return (T)getByPath(val, Arrays.stream(allPaths).skip(i+1).collect(Collectors.joining(".")),returnType);
                 }
