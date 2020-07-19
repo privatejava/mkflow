@@ -13,11 +13,14 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -158,6 +161,38 @@ public class Utils {
 //            throw new IllegalStateException("Failed to set environment variable", e);
 //        }
 //    }
+
+    public static <T> T getByPath(Object obj, String path,Class<T> returnType){
+        String[] allPaths = path.split("\\.");
+        boolean isLast = false;
+        for(int i=0; i<allPaths.length; i++){
+            String keyName = allPaths[i].replaceAll("\\[.*\\]","");
+            if(obj instanceof Map && ((Map)obj).containsKey(keyName)){
+                Object val = ((Map) obj).get(keyName);
+                if (val instanceof List && allPaths[i].matches(".*\\[([0-9]+)\\]")){
+                    Pattern compile = Pattern.compile(".*\\[([0-9]+)\\]");
+                    Matcher m = compile.matcher(allPaths[i]);
+                    if(m.matches()){
+                        int index = Integer.parseInt(m.group(1));
+                        val = ((List) val).get(index);
+                    }else{
+                        val = null;
+                    }
+                }
+
+                if(i+1 == allPaths.length){
+                    return (T)val;
+                }else{
+                    return (T)getByPath(val, Arrays.stream(allPaths).skip(i+1).collect(Collectors.joining(".")),returnType);
+                }
+            }else {
+                return null;
+            }
+        }
+        return null;
+    }
+
+
 
     public static File getSshDir() {
         return getWorkingDir().toPath().resolve(".ssh").toFile();

@@ -22,6 +22,11 @@ public class BuildSpecParser {
         return jsonWriter.writeValueAsString(obj);
     }
 
+    protected Object convertYamlToMap(String yaml) throws JsonProcessingException {
+        ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+        return yamlReader.readValue(yaml, Object.class);
+    }
+
     public Buildspec parse(List<String> commands) throws YAMLException {
         Buildspec buildspec = new Buildspec();
         Phase phase = new Phase();

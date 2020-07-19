@@ -1,9 +1,8 @@
 package com.mkflow.model.aws;
 
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
+
 import com.mkflow.model.*;
+import com.mkflow.utils.Utils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -12,39 +11,38 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AWSBuildspecParser extends BuildSpecParser {
-    private List<Command> getCommands(DocumentContext doc, String path) {
-        try {
-            List<String> read = doc.read(path, List.class);
-            if (read != null) {
-                return read.stream().map(s -> new Command(s.toString())).collect(Collectors.toList());
-            } else {
-                return null;
-            }
-        } catch (PathNotFoundException pnfe) {
+    private List<Command> getCommands(Object obj, String path) {
+
+        List<String> read = Utils.getByPath(obj,path,List.class);
+        if (read != null) {
+            return read.stream().map(s -> new Command(s.toString())).collect(Collectors.toList());
+        } else {
             return null;
         }
+
     }
 
     @Override
     public Buildspec parse(InputStream inputStream) {
         Buildspec buildspec = null;
         try {
-            String json = convertYamlToJson(IOUtils.toString(inputStream, "utf-8"));
-            DocumentContext doc = JsonPath.parse(json);
-            List<Command> install = getCommands(doc, "$.phases.install.commands");
-            List<Command> pre = getCommands(doc, "$.phases.pre_build.commands");
-            List<Command> build = getCommands(doc, "$.phases.build.commands");
-            List<Command> post = getCommands(doc, "$.phases.post_build.commands");
-            CachePath cachePath = doc.read("$.cache", CachePath.class);
-            if (install == null && pre == null && build == null && post == null) {
-                return null;
-            }
+            Object map = convertYamlToMap(IOUtils.toString(inputStream, "utf-8"));
+
+//            DocumentContext doc = JsonPath.parse(json);
+            List<Command> install = getCommands(map, "phases.install.commands");
+            List<Command> pre = getCommands(map, "phases.pre_build.commands");
+            List<Command> build = getCommands(map, "phases.build.commands");
+            List<Command> post = getCommands(map, "phases.post_build.commands");
+            CachePath cachePath = Utils.getByPath(map,"cache", CachePath.class);
+//            if (install == null && pre == null && build == null && post == null) {
+//                return null;
+//            }
             buildspec = new Buildspec();
-            buildspec.setInstall(new Phase(install));
-            buildspec.setPreBuild(new Phase(pre));
-            buildspec.setBuild(new Phase(build));
-            buildspec.setPostBuild(new Phase(post));
-            buildspec.setCache(cachePath);
+//            buildspec.setInstall(new Phase(install));
+//            buildspec.setPreBuild(new Phase(pre));
+//            buildspec.setBuild(new Phase(build));
+//            buildspec.setPostBuild(new Phase(post));
+//            buildspec.setCache(cachePath);
 
         } catch (IOException e) {
             e.printStackTrace();
