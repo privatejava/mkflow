@@ -14,7 +14,7 @@
         <!--        <aws.java.cdk.version>1.42.0</aws.java.cdk.version>-->
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <quarkus.version>1.6.0.Final</quarkus.version>
-        <!--        <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>-->
+        <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
         <!--        <surefire-plugin.version>2.22.0</surefire-plugin.version>-->
         <test.exclude>*.java.exclude</test.exclude>
         <test.type>build</test.type>
@@ -52,22 +52,27 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>org.mapstruct</groupId>-->
-        <!--            <artifactId>mapstruct</artifactId>-->
-        <!--            <version>${org.mapstruct.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.mapstruct</groupId>-->
-        <!--            <artifactId>mapstruct-processor</artifactId>-->
-        <!--            <version>${org.mapstruct.version}</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
         <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.4.0</version>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${org.mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.rest-assured</groupId>-->
+<!--            <artifactId>json-path</artifactId>-->
+<!--            <version>4.3.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.jayway.jsonpath</groupId>-->
+<!--            <artifactId>json-path</artifactId>-->
+<!--            <version>2.4.0</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
@@ -103,6 +108,7 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -112,17 +118,21 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ec2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudwatchlogs</artifactId>
+        </dependency>
 
         <!--        <dependency>-->
         <!--            <groupId>software.amazon.awssdk</groupId>-->
         <!--            <artifactId>cloudwatch</artifactId>-->
         <!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-logs -->
-<!--        <dependency>-->
-<!--            <groupId>com.amazonaws</groupId>-->
-<!--            <artifactId>aws-java-sdk-logs</artifactId>-->
-<!--            <version>1.11.812</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.amazonaws</groupId>-->
+        <!--            <artifactId>aws-java-sdk-logs</artifactId>-->
+        <!--            <version>1.11.812</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>commons-io</groupId>
