@@ -4,6 +4,7 @@ package com.mkflow.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mkflow.dto.RunServerDTO;
 import com.mkflow.mapper.CodebaseMapper;
+import com.mkflow.model.LambdaRequestModel;
 import com.mkflow.model.LogMessage;
 import com.mkflow.model.Server;
 import com.mkflow.model.ServerUtils;
@@ -14,13 +15,12 @@ import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 import software.amazon.awssdk.services.lambda.LambdaClient;
-import software.amazon.awssdk.services.lambda.model.InvocationType;
-import software.amazon.awssdk.services.lambda.model.InvokeRequest;
-import software.amazon.awssdk.services.lambda.model.InvokeResponse;
+import software.amazon.awssdk.services.lambda.model.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -160,9 +160,29 @@ public class RESTController {
 		return result;
 	}
 
+	@Path("debug")
+	@POST
+	public String debug(Map body){
+		log.debug("Body: {}", body);
+		log.debug("Request Headers: {}", request.headers());
+		log.debug("Request params: {}", request.params());
+		log.debug("Request query: {}", request.query());
+		log.debug("Request method: {}", request.method());
+		log.debug("Request path: {}", request.path());
+		log.debug("Other: {}", request);
+		return "ok";
+	}
+
+
+	@Path("run-direct")
+	@POST
+	public Map<String, String> run(Map json) throws Exception {
+		return hookHandlerService.process(json);
+	}
+
 	@Path("hook")
 	@POST
-	public Map<String, String> hook(Map json) throws Exception {
+	public Map<String, Object> hook(Map json) throws Exception {
 		if (request.getHeader("x-github-event") != null && request.getParam("token") != null) {
 			String token = request.getParam("token");
 			json.put("token", token);
@@ -173,19 +193,29 @@ public class RESTController {
 			json.put("pass", request.getParam("pass"));
 		}
 		//Only applies for the lambda
-		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
+		if(System.getenv("DISABLE_SIGNAL_HANDLERS") == null){
 			Region region = Region.AP_SOUTHEAST_1;
+			LambdaRequestModel model = new LambdaRequestModel();
+			model.setPath("/api/run-direct");
+			model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
+			model.addMultiValueHeader("x-github-event-", Arrays.asList("push"));
+			model.setHttpMethod("POST");
+			model.setBody(mapper.writeValueAsString(json));
 			LambdaClient awsLambda = LambdaClient.builder().region(region).build();
-			SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(json));
+			SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(model));
 			InvokeRequest request = InvokeRequest.builder()
+					.logType(LogType.TAIL)
 					.functionName(System.getenv("LAMBDA_NAME")!=null?System.getenv("LAMBDA_NAME"):
 							"mkflow-staging-api")
-					.invocationType(InvocationType.EVENT)
+					.invocationType(InvocationType.REQUEST_RESPONSE)
 					.payload(payload)
 					.build();
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
-			json.put("lambda",res.logResult());
+			log.debug("Body: \n{}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model));
+			log.debug("Base 64: {}", res.logResult());
+			log.debug("Base 64: {}", new String(Base64.getDecoder().decode(res.logResult())));
+			json.put("lambda",new String(Base64.getDecoder().decode(res.logResult())));
 			return json;
 		}
 		return hookHandlerService.process(json);
