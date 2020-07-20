@@ -127,7 +127,7 @@ public class HookHandlerService {
 
 				log.debug("{}", server);
 				log.debug("Perm: {}", server.getCloud().getProvision().getPermission());
-				resp.put("jobId", jobQueueService.addJob(server));
+				resp.put("jobId", jobQueueService.addJob(server,true));
 				log.debug("Jobs: {}", jobQueueService.getJobs());
 				resp.put("codebase", server.getSourceFile().getAbsolutePath());
 			}

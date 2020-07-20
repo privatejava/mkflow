@@ -13,42 +13,47 @@ import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class JobQueueService {
-    private static final Logger log = LoggerFactory.getLogger(JobQueueService.class);
+	private static final Logger log = LoggerFactory.getLogger(JobQueueService.class);
 
-    private Map<String, Server> jobs;
+	private Map<String, Server> jobs;
 
-    public JobQueueService() {
-        jobs = new HashMap<>();
-    }
+	public JobQueueService() {
+		jobs = new HashMap<>();
+	}
 
-    public Map<String, Server> getJobs() {
-        return Collections.unmodifiableMap(jobs);
-    }
+	public Map<String, Server> getJobs() {
+		return Collections.unmodifiableMap(jobs);
+	}
 
-    public Server getJob(String jobId) {
-        return jobs.get(jobId);
-    }
+	public Server getJob(String jobId) {
+		return jobs.get(jobId);
+	}
 
-    public String addJob(Server server) {
-        jobs.put(server.getUniqueId(), server);
-        Utils.getExecutorService().submit(() -> {
-            try {
-                server.provision().get();
-                Thread.sleep(30000);
-                server.connect();
-                log.debug("Executing the commands ");
-                CompletableFuture<Boolean> execute = server.execute(false);
-                Boolean b = execute.get();
-                log.debug("Build Completed: {}", b);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (server != null) {
-                    server.cancelProvision();
-                }
-            }
-        });
+	public String addJob(Server server, boolean async) {
+		jobs.put(server.getUniqueId(), server);
+		Runnable runnable = () -> {
+			try {
+				server.provision().get();
+				Thread.sleep(30000);
+				server.connect();
+				log.debug("Executing the commands ");
+				CompletableFuture<Boolean> execute = server.execute(false);
+				Boolean b = execute.get();
+				log.debug("Build Completed: {}", b);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (server != null) {
+					server.cancelProvision();
+				}
+			}
+		};
+		if (async) {
+			Utils.getExecutorService().submit(runnable);
+		}else{
+			runnable.run();
+		}
 
-        return server.getUniqueId();
-    }
+		return server.getUniqueId();
+	}
 }

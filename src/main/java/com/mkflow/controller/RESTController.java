@@ -156,7 +156,7 @@ public class RESTController {
 		Server server = ServerUtils.create(dto.getType(), dto.getCommands(), dto.getParams().getAuthMethod(),
 				dto.getParams().getDetail().getUsername(), dto.getParams().getDetail().getPassword(), dto.getProvisionType(), codebaseMapper.fromDTO(dto.getCodebase()));
 		Map<String, String> result = new HashMap<>();
-		result.put("jobId", jobQueueService.addJob(server));
+		result.put("jobId", jobQueueService.addJob(server,false));
 		return result;
 	}
 
