@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
@@ -110,7 +111,9 @@ public class RESTController {
 	private CompletableFuture<List<LogMessage>> getResult(String uniqueId, Long from) {
 		CompletableFuture<List<LogMessage>> completeFuture = new CompletableFuture<>();
         Utils.getExecutorService().submit(()-> {
-	        CloudWatchLogsClient client = CloudWatchLogsClient.builder().build();
+	        CloudWatchLogsClient client = CloudWatchLogsClient.builder().region(Region.AP_SOUTHEAST_1).httpClient(
+			        UrlConnectionHttpClient.builder().build()
+	        ).build();
 
             StartQueryRequest request= StartQueryRequest.builder().limit(20)
 		            .logGroupName("/aws/lambda/lead-api-staging-leadApi")
@@ -193,7 +196,7 @@ public class RESTController {
 			json.put("pass", request.getParam("pass"));
 		}
 		//Only applies for the lambda
-		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
+		if(System.getenv("DISABLE_SIGNAL_HANDLERS") == null){
 			Region region = Region.AP_SOUTHEAST_1;
 			LambdaRequestModel model = new LambdaRequestModel();
 			model.setPath("/api/run-direct");
@@ -201,13 +204,15 @@ public class RESTController {
 			model.addMultiValueHeader("x-github-event-", Arrays.asList("push"));
 			model.setHttpMethod("POST");
 			model.setBody(mapper.writeValueAsString(json));
-			LambdaClient awsLambda = LambdaClient.builder().region(region).build();
+			LambdaClient awsLambda = LambdaClient.builder().region(region)
+					.httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
+					.build();
 			SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(model));
 			InvokeRequest request = InvokeRequest.builder()
 					.logType(LogType.TAIL)
 					.functionName(System.getenv("LAMBDA_NAME")!=null?System.getenv("LAMBDA_NAME"):
 							"mkflow-staging-api")
-					.invocationType(InvocationType.REQUEST_RESPONSE)
+					.invocationType(InvocationType.EVENT)
 					.payload(payload)
 					.build();
 			//Invoke the Lambda function
