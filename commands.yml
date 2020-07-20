@@ -34,7 +34,7 @@ phases:
         export PATH=$PATH:$M2_HOME/bin
       - |
         mkdir -p /tmp/deps && cd /tmp/deps && git clone https://github.com/privatejava/quarkus && \
-        cd quarkus/extensions/jgit && mvn clean install
+        cd quarkus/extensions/jgit/runtime && mvn clean install
       - cd $WORK_DIR
       - echo $WORK_DIR
       - ls -al
