@@ -22,6 +22,10 @@ provider:
       Action:
         - "glue:*"
       "Resource": "*"
+    - Effect: 'Allow' # Glue Access
+      Action:
+        - "lambda:InvokeFunction"
+      "Resource": "arn:aws:lambda:*:*:function:mkflow-*"
 
 package:
   artifact: target/function.zip

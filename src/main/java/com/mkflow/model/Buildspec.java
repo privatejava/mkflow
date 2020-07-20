@@ -19,6 +19,8 @@ public class Buildspec {
 
     private CachePath cache;
 
+    private Artifact artifacts;
+
     public Buildspec() {
     }
 
@@ -77,6 +79,14 @@ public class Buildspec {
 
     public void setCache(CachePath cache) {
         this.cache = cache;
+    }
+
+    public Artifact getArtifacts() {
+        return artifacts;
+    }
+
+    public void setArtifacts(Artifact artifacts) {
+        this.artifacts = artifacts;
     }
 
     @Override

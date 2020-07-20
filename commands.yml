@@ -57,8 +57,7 @@ phases:
 
 artifacts:
   files:
-    - "**/*.yml"
-    - "target/function.zip"
+    - "target"
 
 cache:
   paths:

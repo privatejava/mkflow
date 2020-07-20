@@ -429,6 +429,16 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
                     provider.upload(paths.get(0), target);
             }
         }
+        if (getBuild().getCache() != null && getBuildspec().getArtifacts() != null &&
+                getBuildspec().getArtifacts().getFiles() != null && getBuildspec().getArtifacts().getFiles().size() > 0) {
+            switch (getBuild().getCache().getType()) {
+                case S3:
+                    String target = getBuild().getCache().getLocation();
+                    S3CacheProvider provider = new S3CacheProvider(getSession());
+                    List<String> paths = getBuildspec().getArtifacts().getFiles();
+                    provider.upload(paths.get(0), target);
+            }
+        }
         return true;
 
     }

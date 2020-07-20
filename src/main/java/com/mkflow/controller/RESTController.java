@@ -1,35 +1,30 @@
 package com.mkflow.controller;
 
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.mkflow.dto.RunServerDTO;
 import com.mkflow.mapper.CodebaseMapper;
-import com.mkflow.model.*;
-import com.mkflow.model.auth.AWSBasicAuthentication;
-import com.mkflow.model.auth.Authentication;
-import com.mkflow.model.aws.AWSServer;
+import com.mkflow.model.LogMessage;
+import com.mkflow.model.Server;
+import com.mkflow.model.ServerUtils;
+import com.mkflow.service.HookHandlerService;
 import com.mkflow.service.JobQueueService;
 import com.mkflow.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
-import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,12 +36,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//import com.jayway.jsonpath.Configuration;
-//import com.jayway.jsonpath.DocumentContext;
-//import com.jayway.jsonpath.JsonPath;
-//import com.jayway.jsonpath.Option;
-//import io.restassured.path.json.JsonPath;
-//import io.restassured.path.json.JsonPath;
 
 @Path("api")
 @Consumes("application/json")
@@ -66,6 +55,9 @@ public class RESTController {
 
 	@Inject
 	ObjectMapper mapper;
+
+	@Inject
+	HookHandlerService hookHandlerService;
 
 	@Path("hello")
 	@GET
@@ -171,134 +163,32 @@ public class RESTController {
 	@Path("hook")
 	@POST
 	public Map<String, String> hook(Map json) throws Exception {
-		Map resp = new HashMap();
 		if (request.getHeader("x-github-event") != null && request.getParam("token") != null) {
-			resp.put("github", "true");
 			String token = request.getParam("token");
-//            DocumentContext doc = JsonPath.parse(json);
-
-//            JsonPath jsonPath = JsonPath.from((json.toString()));
-//            String url = "";
-//            String branch = "";
-//            String url = doc.read("$.repository.url", String.class);
-//            String branch = doc.read("$.ref", String.class);
-			String url = json.containsKey("repository") && ((Map) json.get("repository")).containsKey("url") ?
-					((Map) json.get("repository")).get("url").toString() : null;
-//            ("repository.url");
-			String branch = json.containsKey("ref") ? json.get("ref").toString() : null;
-//                    jsonPath.getString("ref");
-			resp.put("url", url);
-			java.nio.file.Path test = Files.createTempDirectory("test");
-
-			CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
-			Git git = Git.cloneRepository()
-					.setURI(url)
-					.setDirectory(test.toFile())
-					.setBranchesToClone(Arrays.asList(branch))
-					.setCredentialsProvider(credentialsProvider)
-					.call();
-            processGit(test,resp);
-			resp.put("dir", test.toString());
-//            DocumentContext doc = JsonPath.parse(json);
-//            String url = doc.read("$.repository.url", String.class);
-//            String branch = doc.read("$.ref", String.class);
-//            resp.put("url", url);
-//            java.nio.file.Path test = Files.createTempDirectory("test");
-//            CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
-//            Git git = Git.cloneRepository()
-//                .setURI(url)
-//                .setDirectory(test.toFile())
-//                .setBranchesToClone(Arrays.asList(branch))
-//                .setCredentialsProvider(credentialsProvider)
-//                .call();
-//
-//            processGit(test,resp);
-//
-//            resp.put("dir", test.toString());
+			json.put("token", token);
+			json.put("type", "github");
 		} else if (request.getHeader("x-gogs-event") != null && request.getParam("user") != null && request.getParam("pass") != null) {
-			resp.put("gogs", "true");
-			String user = request.getParam("user");
-			String pass = request.getParam("pass");
-//            DocumentContext doc = JsonPath.parse(json);
-//            String url = doc.read("$.repository.html_url", String.class);
-//            String branch = doc.read("$.ref", String.class);
-			String url = json.containsKey("repository") && ((Map) json.get("repository"))
-					.containsKey("html_url") ? ((Map) json.get("repository")).get("html_url").toString() : null;
-			String branch = json.containsKey("ref") ? json.get("ref").toString() : null;
-//            String url = "";
-//            String branch = "";
-//            JsonPath jsonPath = JsonPath.from(mapper.writeValueAsString(json));
-//            String url = jsonPath.getString("repository.html_url");
-//            String branch = jsonPath.getString("ref");
-			resp.put("url", url);
-			java.nio.file.Path test = Files.createTempDirectory("test");
-			log.debug("{}", test);
-			CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(user, pass);
-			Git git = Git.cloneRepository()
-					.setURI(url)
-					.setDirectory(test.toFile())
-					.setBranchesToClone(Arrays.asList(branch))
-					.setCredentialsProvider(credentialsProvider)
-					.call();
-            processGit(test,resp);
-		} else {
-			resp.put("github", "false");
+			json.put("type", "gogs");
+			json.put("user", request.getParam("user"));
+			json.put("pass", request.getParam("pass"));
 		}
-		return resp;
+		//Only applies for the lambda
+		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
+			Region region = Region.AP_SOUTHEAST_1;
+			LambdaClient awsLambda = LambdaClient.builder().region(region).build();
+			SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(json));
+			InvokeRequest request = InvokeRequest.builder()
+					.functionName(System.getenv("LAMBDA_NAME")!=null?System.getenv("LAMBDA_NAME"):
+							"mkflow-staging-api")
+					.invocationType(InvocationType.EVENT)
+					.payload(payload)
+					.build();
+			//Invoke the Lambda function
+			InvokeResponse res= awsLambda.invoke(request);
+			json.put("lambda",res.logResult());
+			return json;
+		}
+		return hookHandlerService.process(json);
 	}
 
-	private void processGit(java.nio.file.Path test, Map resp) throws IOException {
-		File mkFlowFile = Utils.findBobFlowFile(test.toFile());
-		if (mkFlowFile != null) {
-			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-			resp.put("file", mkFlowFile.getAbsolutePath());
-			Map map = mapper.readValue(mkFlowFile, Map.class);
-			SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
-			SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-//            DocumentContext jsonpath = JsonPath.parse(map, Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS));
-//            JsonPath jsonpath = JsonPath.from(mapper.writeValueAsString(map));
-//            if (map != null && map.containsKey("cloud")) {
-//
-//            }
-//            DocumentContext parse = JsonPath.parse(map, Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS));
-			if (map != null && map.containsKey("cloud")) {
-				CloudVendor vendor = CloudVendor.parse(Utils.getByPath(map,"cloud.vendor",String.class));
-				Server server = null;
-				switch (vendor) {
-					case AMAZON:
-//                        if(jsonpath.getString("$.cloud.auth") != null && jsonpath.getString("cloud.auth.type")!= null){
-//                        if(jsonpath.read("$.cloud.auth") != null && jsonpath.read("cloud.auth.type")!= null){
-						if (Utils.getByPath(map,"cloud.auth",Map.class) !=null &&
-								Utils.getByPath(map,"cloud.auth.type",String.class) !=null) {
-							AuthenticationMethod method = AuthenticationMethod.parse(Utils.getByPath(map,"cloud.auth.type",String.class));
-							switch (method) {
-								case USER_PASS:
-									log.debug("Auth type: {}", method);
-									resolver.addMapping(Authentication.class, AWSBasicAuthentication.class);
-									break;
-							}
-						}
-
-						resolver.addMapping(IAMPermission.class, AWSPermission.class);
-						module.setAbstractTypes(resolver);
-						mapper.registerModule(module);
-						mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-						server = mapper.readValue(mkFlowFile, AWSServer.class);
-						break;
-				}
-				server.init();
-				FileUtils.copyDirectory(test.toFile(), server.getSourceFile());
-
-				File zipFile = server.getWorkDir().resolve("codebase.zip").toFile();
-				log.debug("{} -> {}", test.resolve("src").toString(), zipFile.getAbsolutePath());
-				Utils.zip(test.resolve("src").toString(), zipFile.getAbsolutePath());
-
-				log.debug("{}", server);
-				log.debug("Perm: {}", server.getCloud().getProvision().getPermission());
-				resp.put("jobId", jobQueueService.addJob(server));
-				log.debug("Jobs: {}", jobQueueService.getJobs());
-				resp.put("codebase", server.getSourceFile().getAbsolutePath());
-			}
-		}
-	}
 }

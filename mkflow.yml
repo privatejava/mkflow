@@ -25,6 +25,7 @@ cloud:
           - lambda:PublishVersion
           - lambda:RemovePermission
           - lambda:CreateAlias
+          - lambda:InvokeFunction
         Resource:
           - arn:aws:lambda:*:*:function:mkflow-*
           - arn:aws:iam::*:role/mkflow-*
