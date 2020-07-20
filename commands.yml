@@ -13,7 +13,7 @@ phases:
 #      - echo '#!/bin/bash' > /usr/local/bin/ok; echo 'if [[ "$CODEBUILD_BUILD_SUCCEEDING" == "0" ]]; then exit 1; else exit 0; fi' >> /usr/local/bin/ok; chmod +x /usr/local/bin/ok
       - ls -al
       - aws --version
-      - sudo yum -y -q install zip jq gcc glibc-devel zlib-devel libstdc++-static
+      - sudo yum -y -q install git zip jq gcc glibc-devel zlib-devel libstdc++-static
       - |
         curl -s https://api.github.com/repos/graalvm/graalvm-ce-builds/releases/latest | \
         grep "browser_download_url.*java11.*linux-amd64.*.tar.gz" | \
@@ -32,6 +32,9 @@ phases:
         cd /tmp && tar -xf maven.tar.gz && \
         export M2_HOME="$(find /tmp -type d -name "apache-maven*" -print -quit)" && \
         export PATH=$PATH:$M2_HOME/bin
+      - |
+        mkdir -p /tmp/deps && cd /tmp/deps && git clone https://github.com/privatejava/quarkus && \
+        cd quarkus/extensions/jgit && mvn clean install
       - cd $WORK_DIR
       - echo $WORK_DIR
       - ls -al
