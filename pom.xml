@@ -468,7 +468,6 @@
                     -Djgit.config=/tmp/home,
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
-                    --initialize-at-run-time=org.eclipse.jgit.util.FS,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
                     -H:IncludeResources=templates/.*
                 </quarkus.native.additional-build-args>
