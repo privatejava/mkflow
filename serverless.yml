@@ -6,7 +6,7 @@ provider:
   memorySize: 1024
   stage: ${opt:stage, 'staging'}
   region: ap-southeast-1
-  timeout: 30
+  timeout: 900
   versionFunctions: false
   tracing:
   lambda: true
