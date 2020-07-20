@@ -12,14 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.builder.SdkAsyncClientBuilder;
 import software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.ec2.model.*;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
+import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.*;
 import software.amazon.awssdk.services.ssm.SsmAsyncClient;
+import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.StartSessionRequest;
 import software.amazon.awssdk.services.ssm.model.StartSessionResponse;
 
@@ -99,13 +102,12 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             .securityGroups().get(0).groupId();
     }
 
-    public CompletableFuture<StartSessionResponse> getSSH(String instanceId) {
-        SsmAsyncClient client = clientBuilder(SsmAsyncClient.builder()).build();
+    public StartSessionResponse getSSH(String instanceId) {
+        SsmClient client = clientBuilder(SsmClient.builder()).build();
         StartSessionRequest request = StartSessionRequest.builder().target(instanceId)
             .build();
-        CompletableFuture<StartSessionResponse> startSessionResponseCompletableFuture = client.startSession(request);
-
-        return startSessionResponseCompletableFuture;
+        StartSessionResponse startSessionResponse = client.startSession(request);
+        return startSessionResponse;
     }
 
     public Image getAmiId(String name) throws Exception {
@@ -203,25 +205,25 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
 
 
     public void fixIamPermission() throws ExecutionException, InterruptedException {
-        IamAsyncClient iamClient = clientBuilder(IamAsyncClient.builder()).region(Region.AWS_GLOBAL).build();
-        ListInstanceProfilesResponse profiles = iamClient.listInstanceProfiles().get();
+        IamClient iamClient = clientBuilder(IamClient.builder()).region(Region.AWS_GLOBAL).build();
+        ListInstanceProfilesResponse profiles = iamClient.listInstanceProfiles();
 
         if (!profiles.hasInstanceProfiles()) {
             CreateInstanceProfileResponse ec2_instance_profile = iamClient
-                .createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE")).get();
+                .createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE"));
             instanceProfile = ec2_instance_profile.instanceProfile();
         } else {
             Optional<InstanceProfile> hasProfile = profiles.instanceProfiles().stream()
                 .filter(f -> f.instanceProfileName().equalsIgnoreCase("EC2_INSTANCE_PROFILE")).findFirst();
             if (!hasProfile.isPresent()) {
                 instanceProfile = iamClient.createInstanceProfile(i -> i.instanceProfileName("EC2_INSTANCE_PROFILE"))
-                    .get().instanceProfile();
+                    .instanceProfile();
             } else {
                 instanceProfile = hasProfile.get();
             }
         }
 
-        Optional<Role> findRole = iamClient.listRoles().get().roles().stream().filter(f -> f.roleName()
+        Optional<Role> findRole = iamClient.listRoles().roles().stream().filter(f -> f.roleName()
             .equalsIgnoreCase("EC2_INSTANCE_PROFILE_ROLE")).findFirst();
 
         if (findRole.isPresent()) {
@@ -238,9 +240,9 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                 "      \"Action\": \"sts:AssumeRole\"\n" +
                 "    }\n" +
                 "  ]\n" +
-                "}")).get().role();
+                "}")).role();
         }
-        ListInstanceProfilesForRoleResponse attached = iamClient.listInstanceProfilesForRole(r -> r.roleName(role.roleName())).get();
+        ListInstanceProfilesForRoleResponse attached = iamClient.listInstanceProfilesForRole(r -> r.roleName(role.roleName()));
         boolean foundRelation = false;
         if (attached.hasInstanceProfiles()) {
             Optional<InstanceProfile> foundRel = attached.instanceProfiles().stream().filter(f -> f.instanceProfileName()
@@ -255,7 +257,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
 
 
         ListAttachedRolePoliciesResponse attachedPolicies = iamClient
-            .listAttachedRolePolicies(p -> p.roleName(role.roleName())).get();
+            .listAttachedRolePolicies(p -> p.roleName(role.roleName()));
 
         if (server.getCloud().getProvision().getPermission() != null) {
             Map<String, Object> policyDocument = new HashMap<>();
@@ -266,17 +268,17 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             try {
                 doc = Utils.mapper().writeValueAsString(policyDocument).toString();
                 log.debug("Policy Doc: {}", doc);
-                GetRolePolicyResponse customPolicy = iamClient.getRolePolicy(c -> c.roleName(role.roleName()).policyName("customPolicy")).get();
+                GetRolePolicyResponse customPolicy = iamClient.getRolePolicy(c -> c.roleName(role.roleName()).policyName("customPolicy"));
                 iamClient.deleteRolePolicy(c -> c.roleName(role.roleName()).policyName("customPolicy"));
                 final String policyDoc = doc;
                 iamClient.putRolePolicy(c -> c.roleName("EC2_INSTANCE_PROFILE_ROLE").policyName("customPolicy").policyDocument(policyDoc));
                 log.debug("Completed creating role");
-            } catch (ExecutionException | JsonProcessingException ex) {
+            } catch ( JsonProcessingException ex) {
 //                ex.printStackTrace();
                 log.debug("Exception occured: {}", doc != null);
                 if (doc != null) {
                     final String policyDoc = doc;
-                    iamClient.putRolePolicy(c -> c.roleName("EC2_INSTANCE_PROFILE_ROLE").policyName("customPolicy").policyDocument(policyDoc)).get();
+                    iamClient.putRolePolicy(c -> c.roleName("EC2_INSTANCE_PROFILE_ROLE").policyName("customPolicy").policyDocument(policyDoc));
                     log.debug("Completed update role");
                 }
 
@@ -287,7 +289,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
             Optional<AttachedPolicy> policy = attachedPolicies.attachedPolicies().stream().filter(f -> f.policyName()
                 .equalsIgnoreCase("AmazonSSMManagedInstanceCore")).findAny();
             if (!policy.isPresent()) {
-                ListPoliciesResponse policies = iamClient.listPolicies(l -> l.maxItems(1000)).get();
+                ListPoliciesResponse policies = iamClient.listPolicies(l -> l.maxItems(1000));
                 Optional<Policy> first = policies.policies().stream().filter(f -> f.policyName().equalsIgnoreCase("AmazonSSMManagedInstanceCore")).findFirst();
                 if (first.isPresent()) {
                     iamClient.attachRolePolicy(p -> p.roleName(role.roleName()).policyArn(first.get().arn()));
