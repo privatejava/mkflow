@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
@@ -67,11 +68,14 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
         if (server.getCloud().getProvision().getRegion() != null) {
             builder.region(Region.of(server.getCloud().getProvision().getRegion()));
         }
+        if(builder instanceof SdkSyncClientBuilder){
+            ((SdkSyncClientBuilder)builder).httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build());
+        }
         return builder;
     }
 
     protected Ec2Client client() {
-        Ec2ClientBuilder builder = Ec2Client.builder().httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build());
+        Ec2ClientBuilder builder = Ec2Client.builder();
         clientBuilder(builder);
         Ec2Client client = builder.build();
         return client;
