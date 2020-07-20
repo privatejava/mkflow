@@ -461,6 +461,7 @@
                 <quarkus.native.additional-build-args>
                     --verbose,
                     --initialize-at-build-time,
+                    -Djgit.config=/tmp/home,
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,

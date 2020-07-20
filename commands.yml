@@ -41,7 +41,7 @@ phases:
   build:
     commands:
 #      - ok && echo Build started on  `date`
-      - mvn clean package -P lambda
+      - export JGIT_CONFIG=/tmp/home && mvn clean package -P lambda
       - ls -al
       - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
       - source ~/.bashrc
