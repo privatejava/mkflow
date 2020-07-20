@@ -48,10 +48,10 @@ public class RESTController {
 	HttpServerRequest request;
 
 	@Inject
-	private CodebaseMapper codebaseMapper;
+	CodebaseMapper codebaseMapper;
 
 	@Inject
-	private JobQueueService jobQueueService;
+	JobQueueService jobQueueService;
 
 	@Inject
 	ObjectMapper mapper;

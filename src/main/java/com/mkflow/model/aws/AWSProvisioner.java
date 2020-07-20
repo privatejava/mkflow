@@ -71,7 +71,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
     }
 
     protected Ec2Client client() {
-        Ec2ClientBuilder builder = Ec2Client.builder();
+        Ec2ClientBuilder builder = Ec2Client.builder().httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build());
         clientBuilder(builder);
         Ec2Client client = builder.build();
         return client;
