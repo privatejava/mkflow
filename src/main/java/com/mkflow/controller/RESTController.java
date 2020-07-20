@@ -193,7 +193,7 @@ public class RESTController {
 			json.put("pass", request.getParam("pass"));
 		}
 		//Only applies for the lambda
-		if(System.getenv("DISABLE_SIGNAL_HANDLERS") == null){
+		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
 			Region region = Region.AP_SOUTHEAST_1;
 			LambdaRequestModel model = new LambdaRequestModel();
 			model.setPath("/api/run-direct");
