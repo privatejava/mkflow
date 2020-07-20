@@ -177,7 +177,7 @@ public class RESTController {
 	@Path("run-direct")
 	@POST
 	public Map<String, String> run(Map json) throws Exception {
-		return hookHandlerService.process(json);
+		return hookHandlerService.process(json,false);
 	}
 
 	@Path("hook")
@@ -218,7 +218,7 @@ public class RESTController {
 			json.put("lambda",new String(Base64.getDecoder().decode(res.logResult())));
 			return json;
 		}
-		return hookHandlerService.process(json);
+		return hookHandlerService.process(json,true);
 	}
 
 }

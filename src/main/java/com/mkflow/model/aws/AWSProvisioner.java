@@ -246,7 +246,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
         boolean foundRelation = false;
         if (attached.hasInstanceProfiles()) {
             Optional<InstanceProfile> foundRel = attached.instanceProfiles().stream().filter(f -> f.instanceProfileName()
-                .equalsIgnoreCase("EC2_INSTANCE_PROFILE_ROLE")).findFirst();
+                .equalsIgnoreCase("EC2_INSTANCE_PROFILE")).findFirst();
             if (foundRel.isPresent()) {
                 foundRelation = true;
             }
@@ -273,7 +273,7 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                 final String policyDoc = doc;
                 iamClient.putRolePolicy(c -> c.roleName("EC2_INSTANCE_PROFILE_ROLE").policyName("customPolicy").policyDocument(policyDoc));
                 log.debug("Completed creating role");
-            } catch ( JsonProcessingException ex) {
+            } catch ( Exception ex) {
 //                ex.printStackTrace();
                 log.debug("Exception occured: {}", doc != null);
                 if (doc != null) {

@@ -41,7 +41,7 @@ public class HookHandlerService {
 	private JobQueueService jobQueueService;
 
 
-	public Map process(Map json) throws IOException, GitAPIException {
+	public Map process(Map json,boolean async) throws IOException, GitAPIException {
 		String type = json.containsKey("type")? json.get("type").toString():null;
 		String token = json.containsKey("token")? json.get("token").toString():null;
 		String user = json.containsKey("user")? json.get("user").toString():null;
@@ -62,8 +62,9 @@ public class HookHandlerService {
 					.setDirectory(test.toFile())
 					.setBranchesToClone(Arrays.asList(branch))
 					.setCredentialsProvider(credentialsProvider)
+					.setTimeout(10)
 					.call();
-			processGit(test,resp);
+			processGit(test,resp,async);
 			resp.put("dir", test.toString());
 		} else if (type.equalsIgnoreCase("gogs")) {
 			resp.put("gogs", "true");
@@ -80,14 +81,14 @@ public class HookHandlerService {
 					.setBranchesToClone(Arrays.asList(branch))
 					.setCredentialsProvider(credentialsProvider)
 					.call();
-			processGit(test,resp);
+			processGit(test,resp,async);
 		} else {
 			resp.put("github", "false");
 		}
 		return resp;
 	}
 
-	private void processGit(java.nio.file.Path test, Map resp) throws IOException {
+	private void processGit(java.nio.file.Path test, Map resp, boolean async) throws IOException {
 		File mkFlowFile = Utils.findBobFlowFile(test.toFile());
 		if (mkFlowFile != null) {
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -127,7 +128,7 @@ public class HookHandlerService {
 
 				log.debug("{}", server);
 				log.debug("Perm: {}", server.getCloud().getProvision().getPermission());
-				resp.put("jobId", jobQueueService.addJob(server,true));
+				resp.put("jobId", jobQueueService.addJob(server,async));
 				log.debug("Jobs: {}", jobQueueService.getJobs());
 				resp.put("codebase", server.getSourceFile().getAbsolutePath());
 			}
