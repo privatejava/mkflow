@@ -166,10 +166,10 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ssm</artifactId>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>lambda</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>software.amazon.awssdk</groupId>-->
+<!--            <artifactId>lambda</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>iam</artifactId>
@@ -251,10 +251,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-qute</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-test-amazon-lambda</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-test-amazon-lambda</artifactId>-->
+<!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/javax.jmdns/jmdns -->
         <!--        <dependency>-->
         <!--            <groupId>javax.jmdns</groupId>-->
