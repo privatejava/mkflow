@@ -60,11 +60,18 @@ public class RESTController {
 	@Inject
 	HookHandlerService hookHandlerService;
 
-	@Path("hello")
+
 	@GET
 	public String hello(){
-		log.debug("{}",System.getProperties());
-		return "hello";
+		log.debug("Properties: {}",System.getProperties());
+		log.debug("Env: {}",System.getenv());
+		return "This is API for Mkflow";
+	}
+
+	@GET
+	@Path("jobs")
+	public Set<String> jobs() throws Exception {
+		return jobQueueService.getJobs().keySet();
 	}
 
 	@Path("log")
@@ -155,12 +162,9 @@ public class RESTController {
 
 	@Path("run")
 	@POST
-	public Map<String, String> run(RunServerDTO dto) throws Exception {
-		Server server = ServerUtils.create(dto.getType(), dto.getCommands(), dto.getParams().getAuthMethod(),
-				dto.getParams().getDetail().getUsername(), dto.getParams().getDetail().getPassword(), dto.getProvisionType(), codebaseMapper.fromDTO(dto.getCodebase()));
-		Map<String, String> result = new HashMap<>();
-		result.put("jobId", jobQueueService.addJob(server,false));
-		return result;
+	public Map<String, String> runOnly(Map dto) throws Exception {
+		dto.put("type","task");
+		return hookHandlerService.process(dto,true);
 	}
 
 	@Path("debug")
@@ -179,7 +183,7 @@ public class RESTController {
 
 	@Path("run-direct")
 	@POST
-	public Map<String, String> run(Map json) throws Exception {
+	public Map<String, String> runDirect(Map json) throws Exception {
 		return hookHandlerService.process(json,false);
 	}
 
@@ -196,12 +200,11 @@ public class RESTController {
 			json.put("pass", request.getParam("pass"));
 		}
 		//Only applies for the lambda
-		if(System.getenv("DISABLE_SIGNAL_HANDLERS") == null){
+		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
 			Region region = Region.AP_SOUTHEAST_1;
 			LambdaRequestModel model = new LambdaRequestModel();
 			model.setPath("/api/run-direct");
 			model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
-			model.addMultiValueHeader("x-github-event-", Arrays.asList("push"));
 			model.setHttpMethod("POST");
 			model.setBody(mapper.writeValueAsString(json));
 			LambdaClient awsLambda = LambdaClient.builder().region(region)
@@ -217,10 +220,10 @@ public class RESTController {
 					.build();
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
-			log.debug("Body: \n{}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model));
-			log.debug("Base 64: {}", res.logResult());
-			log.debug("Base 64: {}", new String(Base64.getDecoder().decode(res.logResult())));
-			json.put("lambda",new String(Base64.getDecoder().decode(res.logResult())));
+//			log.debug("Body: \n{}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model));
+//			log.debug("Base 64: {}", res.logResult());
+//			log.debug("Base 64: {}", new String(Base64.getDecoder().decode(res.logResult())));
+//			json.put("lambda",new String(Base64.getDecoder().decode(res.logResult())));
 			return json;
 		}
 		return hookHandlerService.process(json,true);

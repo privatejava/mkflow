@@ -1,58 +1,37 @@
 package com.mkflow.dto;
 
-import com.mkflow.model.CloudVendor;
-import com.mkflow.model.ProvisionType;
+import com.mkflow.model.*;
 
 
 public class RunServerDTO {
-    private CloudVendor type;
+    private Cloud cloud;
 
-    private ConnectionParamDTO params;
 
-    private String commands;
+    private Build build;
 
-    private ProvisionType provisionType;
+    private Container container;
 
-    private CodebaseDTO codebase;
-
-    public CloudVendor getType() {
-        return type;
+    public Cloud getCloud() {
+        return cloud;
     }
 
-    public void setType(CloudVendor type) {
-        this.type = type;
+    public void setCloud(Cloud cloud) {
+        this.cloud = cloud;
     }
 
-    public ConnectionParamDTO getParams() {
-        return params;
+    public Build getBuild() {
+        return build;
     }
 
-    public void setParams(ConnectionParamDTO params) {
-        this.params = params;
+    public void setBuild(Build build) {
+        this.build = build;
     }
 
-
-    public ProvisionType getProvisionType() {
-        return provisionType;
+    public Container getContainer() {
+        return container;
     }
 
-    public void setProvisionType(ProvisionType provisionType) {
-        this.provisionType = provisionType;
-    }
-
-    public String getCommands() {
-        return commands;
-    }
-
-    public void setCommands(String commands) {
-        this.commands = commands;
-    }
-
-    public CodebaseDTO getCodebase() {
-        return codebase;
-    }
-
-    public void setCodebase(CodebaseDTO codebase) {
-        this.codebase = codebase;
+    public void setContainer(Container container) {
+        this.container = container;
     }
 }

@@ -222,7 +222,7 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
                     }
                 }
             } else {
-                getBuildspecParser().get(0).parse(getBuild().getCommands());
+                this.buildspec = getBuildspecParser().get(0).parse(getBuild().getCommands());
             }
         }
     }
