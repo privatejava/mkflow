@@ -257,9 +257,9 @@ public class RESTController {
 					.build();
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
-			HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
-			objectObjectHashMap.put("uniqueKey",uniqueId);
-			return new HashMap<>();
+			HashMap<Object, Object> response = new HashMap<>();
+			response.put("uniqueKey",uniqueId);
+			return response;
 		}else{
 			log.debug("Using Direct Invocation");
 			return hookHandlerService.process(null,json,true);
