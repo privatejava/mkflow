@@ -151,10 +151,11 @@ public class RESTController {
 		            .startTime(from)
 		            .endTime(new Date().getTime()/1000L)
 		            .queryString("fields @timestamp, @message\n" +
-				            "                       | sort @timestamp desc").build();
+				            "                       | filter @message like '["+uniqueId+"'"+
+				            "                       | sort @timestamp asc").build();
 	        StartQueryResponse startQueryResponse = client.startQuery(request);
             GetQueryResultsResponse queryRes = null;
-            String queryId = client.startQuery(request).queryId();
+            String queryId = startQueryResponse.queryId();
             while(queryRes==null || queryRes.status().equals(QueryStatus.RUNNING)){
                 queryRes = client.getQueryResults(r->r.queryId(queryId));
                 log.debug("{}:{}", queryRes.status() );
@@ -258,7 +259,7 @@ public class RESTController {
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
 			HashMap<Object, Object> response = new HashMap<>();
-			response.put("uniqueKey",uniqueId);
+			response.put("jobId",uniqueId);
 			return response;
 		}else{
 			log.debug("Using Direct Invocation");

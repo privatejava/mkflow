@@ -111,6 +111,7 @@
       var timeOut = 100;
       var changedToBottom = true;
       let waitInterval = 3000;
+      var lastResponse = "";
       function refreshPage() {
         var url =
           window.location.protocol +
@@ -189,6 +190,15 @@
               var code = $("<code>")
                 .addClass("lang-bash")
                 .attr("data-ln-start-from", lastLine);
+
+              //Checking for the data json is same or not.
+              if(lastResponse == JSON.stringify(data)){
+                waitInterval = 5000;
+                return;
+              }else{
+                lastResponse = JSON.stringify(data);
+              }
+
               data.forEach(function(entry) {
                 if(entry.message.match(/.*\n$/g)){
                   code.append(entry.message);
