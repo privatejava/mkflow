@@ -17,6 +17,8 @@
 
 package com.mkflow.model;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +27,7 @@ import java.util.Map;
  * Created 20/07/2020 20:10
  **/
 
+@RegisterForReflection
 public class LambdaRequestModel {
 
 	public String path;
