@@ -146,6 +146,7 @@ public class RESTController {
 			        UrlConnectionHttpClient.builder().build()
 	        ).build();
 
+	        log.debug("Time range {}:{} {}",from,new Date().getTime()/1000L,  (new Date().getTime()/1000L)-from);
             StartQueryRequest request= StartQueryRequest.builder().limit(20)
 		            .logGroupName("/aws/lambda/mkflow-staging-api")
 		            .startTime(from)
@@ -168,11 +169,18 @@ public class RESTController {
             completeFuture.complete(queryRes.results().stream().map(m-> {
                 Optional<ResultField> msg = m.stream().filter(f -> f.field().equalsIgnoreCase("@message")).findFirst();
                 Optional<ResultField> time = m.stream().filter(f -> f.field().equalsIgnoreCase("@timestamp")).findFirst();
+	            Pattern compile = Pattern.compile("\\[([0-9a-z\\-]+):([0-9a-z\\-]+)\\]:(.*)");
+
                 if(msg.isPresent() && time.isPresent()){
-                    LogMessage message = new LogMessage();
-                    message.setMessage(msg.get().value());
+	                LogMessage message = new LogMessage();
+	                Matcher matcher = compile.matcher(msg.get().value());
+	                if (matcher.matches() && matcher.groupCount() >= 3) {
+		                message.setMessage(matcher.group(3));
+	                }else{
+		                message.setMessage(msg.get().value());
+	                }
                     try {
-                        SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss.SSS");
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                         message.setTime(format.parse(time.get().value()).getTime()/1000);
                         return message;
                     } catch (ParseException e) {

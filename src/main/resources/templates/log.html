@@ -194,6 +194,7 @@
               //Checking for the data json is same or not.
               if(lastResponse == JSON.stringify(data)){
                 waitInterval = 5000;
+                countDown(getLog, waitInterval);
                 return;
               }else{
                 lastResponse = JSON.stringify(data);
