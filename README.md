@@ -32,7 +32,7 @@ This file contains all the server specification for provisioning an instance in 
     - cache
         - type - ["s3"] right now only saves the cache to S3 bucket
         - location - Specific location of S3 bucket eg. s3://<bucket>/<prefix>
-    
+___
 ### How to deploy
 
 ##### Native Deploy to AWS Serverless
@@ -51,6 +51,7 @@ sudo ./build-docker.sh
 sudo docker run -p 8080:8080 -e AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID> -e AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY> mkflow
 ```
 
+___
 
 ### Try it out
 
@@ -93,9 +94,11 @@ which must give you some output like :
 }
 ```
 
+
 ##### View Logs
 Open `<PUBLIC_URL>/log` in your browser where you need to put `jobId` to display all the logs.
 
+___
 
 ### REST APIs
 
@@ -139,13 +142,12 @@ Open `<PUBLIC_URL>/log` in your browser where you need to put `jobId` to display
 > This is a webhook receiver api right now it only supports Github webhooks. 
 
 
-
+___
 ### Supported
 - Github, Gogs Hooks
 - AWS Cloud 
 - Gogs Hooks
 - Provisioning using Spot instances only 
-
 
 ### Todo
 - Bitbucket, Gitlab Hooks
