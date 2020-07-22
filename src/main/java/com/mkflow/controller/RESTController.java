@@ -108,6 +108,10 @@ public class RESTController {
 			if (server != null) {
 				log.debug("Using File");
 				java.nio.file.Path path = server.getOutputFile().toPath();
+				if(!path.toFile().exists()){
+					log.debug("Using Cloudwatch");
+					return getResult(jobId, start).get();
+				}
 				Integer line = params.containsKey("line") ? Integer.parseInt(params.get("line").toString()) : 0;
 				try (Stream<String> lines = Files.lines(path)) {
 					return lines.skip(line).limit(500).map(l -> {
@@ -237,7 +241,8 @@ public class RESTController {
 			model.setPath("/api/run-direct");
 			model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
 			model.setHttpMethod("POST");
-			json.put("uniqueKey",UUID.randomUUID().toString());
+			String uniqueId = UUID.randomUUID().toString();
+			json.put("uniqueKey",uniqueId);
 			model.setBody(mapper.writeValueAsString(json));
 			LambdaClient awsLambda = LambdaClient.builder().region(region)
 					.httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
@@ -252,6 +257,8 @@ public class RESTController {
 					.build();
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
+			HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+			objectObjectHashMap.put("uniqueKey",uniqueId);
 			return new HashMap<>();
 		}else{
 			log.debug("Using Direct Invocation");

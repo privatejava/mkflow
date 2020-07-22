@@ -342,7 +342,9 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
         String formattedMsg = String.format("[%s:%d]:%s",uniqueId, new Date().getTime(), msg);
         log.debug("{}", formattedMsg);
         try {
-            Files.write(outputFile.toPath(), (formattedMsg + "\n").getBytes("utf-8"), StandardOpenOption.APPEND);
+            if(System.getenv("DISABLE_SIGNAL_HANDLERS") == null){
+                Files.write(outputFile.toPath(), (formattedMsg + "\n").getBytes("utf-8"), StandardOpenOption.APPEND);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
