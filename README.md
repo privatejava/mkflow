@@ -5,7 +5,34 @@ Mkflow is cloud based application which can be used to provision the cloud compu
   - Cloud agnostic
   - Fully scalable
   
-  
+### mkflow.yml
+The application will look for `mkflow.yml` and other yaml for running a set of commands. 
+
+This file contains all the server specification for provisioning an instance in a cloud.
+
+- cloud
+    - vendor  ["aws" | "azure" | "google"] -> Type of cloud vendor 
+    - auth -> (Type of authentication to use) 
+        - type [ "key" ] -> Automatically create , assign SSH Key and destory. 
+    - provision
+        - type ["market", "demand", "premises" ] -> Only market works for now
+        - instanceType : ["t2.micro", "t3.large" ... ] -> Vendor specific instance type.
+        - region -> Vendor specific region where the instance should be running
+        - permission -> Vendor specific IAM permission to set permission for instance.
+- container
+    - image -> Vendor specific Operating system image name to run. default: ami image  
+    - auth  
+        - username -> username to use for logging through ssh protocol default : ec2-user 
+- build  
+    - commands - Set of commands to run in the provisioned instance. Supports relative uri as well if used single entry.
+    - repo 
+        - uri - The uri to clone the repository for source code 
+        - auth -> (Type of authentication to use) 
+            - type [ "token" ] -> use github token for now
+    - cache
+        - type - ["s3"] right now only saves the cache to S3 bucket
+        - location - Specific location of S3 bucket eg. s3://<bucket>/<prefix>
+    
 ### How to deploy
 
 ##### Native Deploy to AWS Serverless
@@ -68,6 +95,49 @@ which must give you some output like :
 
 ##### View Logs
 Open `<PUBLIC_URL>/log` in your browser where you need to put `jobId` to display all the logs.
+
+
+### REST APIs
+
+**/log [GET]**
+> This is the html endpoint for watching logs of specific job by using jobId.
+
+
+**/api/run [POST]**
+> This api is used for running commands directly and this one does not have source repository at all. Normally this is used for job processing.
+>  
+> JSON Body: 
+>```json
+>{
+>     "cloud":{
+>         "vendor": "aws",
+>         "provision":{
+>             "type":"market",
+>             "instanceType":["t2.small","t3.small"],
+>             "region":"ap-southeast-1"
+>         }
+>     },
+>    
+>     "container":{
+>         "auth":{
+>             "username":"ec2-user",
+>             "type":"key"
+>         }
+>     },
+> 
+>      "build": {
+>         "commands" : [
+>             "ls -al ",
+>             "uname -a "
+>         ]
+>     }
+> }
+>```
+
+
+**/api/hook?token=<GITHUB_TOKEN> [POST]**
+> This is a webhook receiver api right now it only supports Github webhooks. 
+
 
 
 ### Supported

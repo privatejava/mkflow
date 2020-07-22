@@ -26,6 +26,7 @@ import com.mkflow.model.LambdaRequestModel;
 import com.mkflow.model.LogMessage;
 import com.mkflow.model.Server;
 import com.mkflow.model.ServerUtils;
+import com.mkflow.service.AWSService;
 import com.mkflow.service.HookHandlerService;
 import com.mkflow.service.JobQueueService;
 import com.mkflow.utils.Utils;
@@ -75,10 +76,10 @@ public class RESTController {
 	JobQueueService jobQueueService;
 
 	@Inject
-	ObjectMapper mapper;
+	HookHandlerService hookHandlerService;
 
 	@Inject
-	HookHandlerService hookHandlerService;
+	AWSService awsService;
 
 
 	@GET
@@ -88,12 +89,24 @@ public class RESTController {
 		return "This is API for Mkflow";
 	}
 
+	/**
+	 * This endpoint is for listing out all the Jobs available in the container
+	 * @return
+	 * @throws Exception
+	 */
 	@GET
 	@Path("jobs")
 	public Set<String> jobs() throws Exception {
 		return jobQueueService.getJobs().keySet();
 	}
 
+	/**
+	 * Helps to fetch the logs by filtering the time and limit of rows.
+	 *
+	 * @param params
+	 * @return
+	 * @throws Exception
+	 */
 	@Path("log")
 	@POST
 	public List<LogMessage> logs(Map params) throws Exception {
@@ -110,7 +123,7 @@ public class RESTController {
 				java.nio.file.Path path = server.getOutputFile().toPath();
 				if(!path.toFile().exists()){
 					log.debug("Using Cloudwatch");
-					return getResult(jobId, start).get();
+					return awsService.getAWSCloudwatchResult(jobId, start).get();
 				}
 				Integer line = params.containsKey("line") ? Integer.parseInt(params.get("line").toString()) : 0;
 				try (Stream<String> lines = Files.lines(path)) {
@@ -130,7 +143,7 @@ public class RESTController {
 				}
 			} else {
 				log.debug("Using Cloudwatch");
-				return getResult(jobId, start).get();
+				return awsService.getAWSCloudwatchResult(jobId, start).get();
 			}
 
 		}
@@ -139,65 +152,19 @@ public class RESTController {
 	}
 
 
-	private CompletableFuture<List<LogMessage>> getResult(String uniqueId, Long from) {
-		CompletableFuture<List<LogMessage>> completeFuture = new CompletableFuture<>();
-        Utils.getExecutorService().submit(()-> {
-	        CloudWatchLogsClient client = CloudWatchLogsClient.builder().region(Region.AP_SOUTHEAST_1).httpClient(
-			        UrlConnectionHttpClient.builder().build()
-	        ).build();
 
-	        log.debug("Time range {}:{} {}",from,new Date().getTime()/1000L,  (new Date().getTime()/1000L)-from);
-            StartQueryRequest request= StartQueryRequest.builder().limit(20)
-		            .logGroupName("/aws/lambda/mkflow-staging-api")
-		            .startTime(from)
-		            .endTime(new Date().getTime()/1000L)
-		            .queryString("fields @timestamp, @message\n" +
-				            "                       | filter @message like '["+uniqueId+"'"+
-				            "                       | sort @timestamp asc").build();
-	        StartQueryResponse startQueryResponse = client.startQuery(request);
-            GetQueryResultsResponse queryRes = null;
-            String queryId = startQueryResponse.queryId();
-            while(queryRes==null || queryRes.status().equals(QueryStatus.RUNNING)){
-                queryRes = client.getQueryResults(r->r.queryId(queryId));
-                log.debug("{}:{}", queryRes.status() );
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            completeFuture.complete(queryRes.results().stream().map(m-> {
-                Optional<ResultField> msg = m.stream().filter(f -> f.field().equalsIgnoreCase("@message")).findFirst();
-                Optional<ResultField> time = m.stream().filter(f -> f.field().equalsIgnoreCase("@timestamp")).findFirst();
-	            Pattern compile = Pattern.compile("\\[([0-9a-z\\-]+):([0-9a-z\\-]+)\\]:(.*)");
 
-                if(msg.isPresent() && time.isPresent()){
-	                LogMessage message = new LogMessage();
-	                Matcher matcher = compile.matcher(msg.get().value());
-	                if (matcher.matches() && matcher.groupCount() >= 3) {
-		                message.setMessage(matcher.group(3));
-	                }else{
-		                message.setMessage(msg.get().value());
-	                }
-                    try {
-                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                        message.setTime(format.parse(time.get().value()).getTime()/1000);
-                        return message;
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList()));
-        });
-		return completeFuture;
-	}
-
+	/**
+	 * Directly run a task in a machine without any source reposistory. This is more likely to be used for batch jobs.
+	 * @param dto
+	 * @return
+	 * @throws Exception
+	 */
 	@Path("run")
 	@POST
 	public Map<String, String> runOnly(Map dto) throws Exception {
 		dto.put("type","task");
-		return processForLambda(dto);
+		return awsService.processForLambda(dto);
 
 	}
 
@@ -215,6 +182,15 @@ public class RESTController {
 	}
 
 
+	/**
+	 * This endpoint is not normally called but it is instead called by another rest endpoint for making the
+	 * serverless application to call asynchronously. It is a prodcedure in serverless architecture because of 30 sec
+	 * limit on AWS API Gateway.
+	 *
+	 * @param json
+	 * @return
+	 * @throws Exception
+	 */
 	@Path("run-direct")
 	@POST
 	public Map<String, String> runDirect(Map json) throws Exception {
@@ -226,6 +202,12 @@ public class RESTController {
 		return hookHandlerService.process(key,json,false);
 	}
 
+	/**
+	 * Web Hooks for getting an update for running build from Githu or Gogs repository.
+	 * @param json
+	 * @return
+	 * @throws Exception
+	 */
 	@Path("hook")
 	@POST
 	public Map<String, Object> hook(Map json) throws Exception {
@@ -238,41 +220,9 @@ public class RESTController {
 			json.put("user", request.getParam("user"));
 			json.put("pass", request.getParam("pass"));
 		}
-		return processForLambda(json);
+		return awsService.processForLambda(json);
 	}
 
-	private Map processForLambda(Map json) throws IOException, GitAPIException {
-		//Only applies for the lambda
-		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
-			log.debug("Using Lambda Invoke");
-			Region region = Region.AP_SOUTHEAST_1;
-			LambdaRequestModel model = new LambdaRequestModel();
-			model.setPath("/api/run-direct");
-			model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
-			model.setHttpMethod("POST");
-			String uniqueId = UUID.randomUUID().toString();
-			json.put("uniqueKey",uniqueId);
-			model.setBody(mapper.writeValueAsString(json));
-			LambdaClient awsLambda = LambdaClient.builder().region(region)
-					.httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
-					.build();
-			SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(model));
-			InvokeRequest request = InvokeRequest.builder()
-					.logType(LogType.TAIL)
-					.functionName(System.getenv("LAMBDA_NAME")!=null?System.getenv("LAMBDA_NAME"):
-							"mkflow-staging-api")
-					.invocationType(InvocationType.EVENT)
-					.payload(payload)
-					.build();
-			//Invoke the Lambda function
-			InvokeResponse res= awsLambda.invoke(request);
-			HashMap<Object, Object> response = new HashMap<>();
-			response.put("jobId",uniqueId);
-			return response;
-		}else{
-			log.debug("Using Direct Invocation");
-			return hookHandlerService.process(null,json,true);
-		}
-	}
+
 
 }
