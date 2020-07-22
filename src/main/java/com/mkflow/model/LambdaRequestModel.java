@@ -27,17 +27,20 @@ import java.util.Map;
 
 public class LambdaRequestModel {
 
-	private String path;
+	public String path;
 
-	private String httpMethod;
+	public String httpMethod;
 
-	private String body;
+	public String body;
 
-	private Map<String, String> headers;
+	public Map<String, String> headers;
 
-	private Map<String,Object> multiValueHeaders;
+	public Map<String,Object> multiValueHeaders;
 
-	private boolean base64Encoded = false;
+	public boolean base64Encoded = false;
+
+	public LambdaRequestModel() {
+	}
 
 	public String getPath() {
 		return path;
