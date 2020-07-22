@@ -103,7 +103,7 @@
 <script>
       hljs.initHighlighting.called = false;
       //hljs.initHighlighting();
-
+      var baseUrl = window.location.href.substr(0,window.location.href.indexOf("/log"));
       // hljs.initHighlightingOnLoad();
       // hljs.initLineNumbersOnLoad();
       var lastLine = 0;
@@ -184,7 +184,7 @@
           }
 
 
-          $.postJSON("/api/log", params, function(data) {
+          $.postJSON(baseUrl+"/api/log", params, function(data) {
             if (data.length > 0) {
               var code = $("<code>")
                 .addClass("lang-bash")

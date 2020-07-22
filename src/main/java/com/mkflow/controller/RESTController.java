@@ -18,6 +18,7 @@
 package com.mkflow.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mkflow.dto.RunServerDTO;
 import com.mkflow.mapper.CodebaseMapper;
@@ -29,6 +30,7 @@ import com.mkflow.service.HookHandlerService;
 import com.mkflow.service.JobQueueService;
 import com.mkflow.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.services.lambda.model.*;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -140,7 +143,7 @@ public class RESTController {
 	        ).build();
 
             StartQueryRequest request= StartQueryRequest.builder().limit(20)
-		            .logGroupName("/aws/lambda/lead-api-staging-leadApi")
+		            .logGroupName("/aws/lambda/mkflow-staging-api")
 		            .startTime(from)
 		            .endTime(new Date().getTime()/1000L)
 		            .queryString("fields @timestamp, @message\n" +
@@ -201,7 +204,7 @@ public class RESTController {
 	@Path("run-direct")
 	@POST
 	public Map<String, String> runDirect(Map json) throws Exception {
-		return hookHandlerService.process(json,false);
+		return processForLambda(json);
 	}
 
 	@Path("hook")
@@ -216,6 +219,10 @@ public class RESTController {
 			json.put("user", request.getParam("user"));
 			json.put("pass", request.getParam("pass"));
 		}
+		return processForLambda(json);
+	}
+
+	private Map processForLambda(Map json) throws IOException, GitAPIException {
 		//Only applies for the lambda
 		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
 			Region region = Region.AP_SOUTHEAST_1;
@@ -237,13 +244,10 @@ public class RESTController {
 					.build();
 			//Invoke the Lambda function
 			InvokeResponse res= awsLambda.invoke(request);
-//			log.debug("Body: \n{}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model));
-//			log.debug("Base 64: {}", res.logResult());
-//			log.debug("Base 64: {}", new String(Base64.getDecoder().decode(res.logResult())));
-//			json.put("lambda",new String(Base64.getDecoder().decode(res.logResult())));
-			return json;
+			return new HashMap<>();
+		}else{
+			return hookHandlerService.process(json,true);
 		}
-		return hookHandlerService.process(json,true);
 	}
 
 }
