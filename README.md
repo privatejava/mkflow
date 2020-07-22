@@ -20,7 +20,7 @@ serverless deploy # Deploying to the AWS Cloud
 ```
 mvn clean install
 sudo ./build-docker.sh
-docker exec -e AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID> -e AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY> mkflow
+sudo docker run -e AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID> -e AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY> mkflow
 ```
 
 
