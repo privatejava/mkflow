@@ -59,7 +59,7 @@ public class HookHandlerService {
 	private JobQueueService jobQueueService;
 
 
-	public Map process(Map json, boolean async) throws IOException, GitAPIException {
+	public Map process(String key,Map json, boolean async) throws IOException, GitAPIException {
 		String type = json.containsKey("type") ? json.get("type").toString() : null;
 		String token = json.containsKey("token") ? json.get("token").toString() : null;
 		String user = json.containsKey("user") ? json.get("user").toString() : null;
@@ -82,7 +82,7 @@ public class HookHandlerService {
 					.setCredentialsProvider(credentialsProvider)
 					.setTimeout(10)
 					.call();
-			processGit(test, resp, async);
+			processGit(key,test, resp, async);
 			resp.put("dir", test.toString());
 		} else if (type.equalsIgnoreCase("gogs")) {
 			resp.put("gogs", "true");
@@ -99,13 +99,13 @@ public class HookHandlerService {
 					.setBranchesToClone(Arrays.asList(branch))
 					.setCredentialsProvider(credentialsProvider)
 					.call();
-			processGit(test, resp, async);
+			processGit(key,test, resp, async);
 		} else if (type.equalsIgnoreCase("task")) {
 			java.nio.file.Path test = Files.createTempDirectory("test");
 			json.remove("type");
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 			Files.write(test.resolve("mkflow.yml"),mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(json), StandardOpenOption.CREATE);
-			processGit(test, resp, async);
+			processGit(key,test, resp, async);
 		} else {
 			resp.put("github", "false");
 		}
@@ -113,7 +113,7 @@ public class HookHandlerService {
 	}
 
 
-	private void processGit(java.nio.file.Path test, Map resp, boolean async) throws IOException {
+	private void processGit(String key,java.nio.file.Path test, Map resp, boolean async) throws IOException {
 		File mkFlowFile = Utils.findBobFlowFile(test.toFile());
 		if (mkFlowFile != null) {
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -145,7 +145,12 @@ public class HookHandlerService {
 						}
 						break;
 				}
-				server.init();
+				if(key != null){
+					server.init(key);
+				}else{
+					server.init();
+				}
+
 				FileUtils.copyDirectory(test.toFile(), server.getSourceFile());
 				try {
 					File zipFile = server.getWorkDir().resolve("codebase.zip").toFile();

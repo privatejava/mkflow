@@ -74,7 +74,9 @@ public abstract class Server<T> implements ProvisionerFactory<T> {
 
     public void init(String key) {
         uniqueId = key;
-        workDir = Path.of(System.getProperty("java.io.tmpdir") + "/" + key);
+        File f = new File(System.getProperty("java.io.tmpdir") + "/" + uniqueId);
+        f.mkdir();
+        workDir = f.toPath();
         sourceFile = workDir.resolve("codebase").toFile();
         sourceFile.mkdir();
         outputFile = workDir.resolve("output.log").toFile();

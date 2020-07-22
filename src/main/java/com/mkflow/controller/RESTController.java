@@ -111,7 +111,7 @@ public class RESTController {
 				Integer line = params.containsKey("line") ? Integer.parseInt(params.get("line").toString()) : 0;
 				try (Stream<String> lines = Files.lines(path)) {
 					return lines.skip(line).limit(500).map(l -> {
-						Pattern compile = Pattern.compile("\\[(.*):(.*)\\]:(.*)");
+						Pattern compile = Pattern.compile("\\[([0-9a-z\\-]+):([0-9a-z\\-]+)\\]:(.*)");
 						Matcher matcher = compile.matcher(l);
 						if (matcher.matches() && matcher.groupCount() >= 3) {
 							String uniqueId = matcher.group(1);
@@ -184,7 +184,8 @@ public class RESTController {
 	@POST
 	public Map<String, String> runOnly(Map dto) throws Exception {
 		dto.put("type","task");
-		return hookHandlerService.process(dto,true);
+		return processForLambda(dto);
+
 	}
 
 	@Path("debug")
@@ -204,7 +205,12 @@ public class RESTController {
 	@Path("run-direct")
 	@POST
 	public Map<String, String> runDirect(Map json) throws Exception {
-		return processForLambda(json);
+		String key = null;
+		if(json.containsKey("uniqueKey")){
+			key = json.get("uniqueKey").toString();
+			json.remove("uniqueKey");
+		}
+		return hookHandlerService.process(key,json,false);
 	}
 
 	@Path("hook")
@@ -225,11 +231,13 @@ public class RESTController {
 	private Map processForLambda(Map json) throws IOException, GitAPIException {
 		//Only applies for the lambda
 		if(System.getenv("DISABLE_SIGNAL_HANDLERS") != null){
+			log.debug("Using Lambda Invoke");
 			Region region = Region.AP_SOUTHEAST_1;
 			LambdaRequestModel model = new LambdaRequestModel();
 			model.setPath("/api/run-direct");
 			model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
 			model.setHttpMethod("POST");
+			json.put("uniqueKey",UUID.randomUUID().toString());
 			model.setBody(mapper.writeValueAsString(json));
 			LambdaClient awsLambda = LambdaClient.builder().region(region)
 					.httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
@@ -246,7 +254,8 @@ public class RESTController {
 			InvokeResponse res= awsLambda.invoke(request);
 			return new HashMap<>();
 		}else{
-			return hookHandlerService.process(json,true);
+			log.debug("Using Direct Invocation");
+			return hookHandlerService.process(null,json,true);
 		}
 	}
 
