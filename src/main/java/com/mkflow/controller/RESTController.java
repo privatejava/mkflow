@@ -18,41 +18,25 @@
 package com.mkflow.controller;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mkflow.dto.RunServerDTO;
 import com.mkflow.mapper.CodebaseMapper;
-import com.mkflow.model.LambdaRequestModel;
 import com.mkflow.model.LogMessage;
 import com.mkflow.model.Server;
-import com.mkflow.model.ServerUtils;
 import com.mkflow.service.AWSService;
 import com.mkflow.service.HookHandlerService;
 import com.mkflow.service.JobQueueService;
-import com.mkflow.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
-import software.amazon.awssdk.services.cloudwatchlogs.model.*;
-import software.amazon.awssdk.services.lambda.LambdaClient;
-import software.amazon.awssdk.services.lambda.model.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -123,7 +107,7 @@ public class RESTController {
 				java.nio.file.Path path = server.getOutputFile().toPath();
 				if(!path.toFile().exists()){
 					log.debug("Using Cloudwatch");
-					return awsService.getAWSCloudwatchResult(jobId, start).get();
+					return awsService.getAWSCloudwatchResult((List<Map>)params.get("lastLines"),jobId, start).get();
 				}
 				Integer line = params.containsKey("line") ? Integer.parseInt(params.get("line").toString()) : 0;
 				try (Stream<String> lines = Files.lines(path)) {
@@ -143,7 +127,7 @@ public class RESTController {
 				}
 			} else {
 				log.debug("Using Cloudwatch");
-				return awsService.getAWSCloudwatchResult(jobId, start).get();
+				return awsService.getAWSCloudwatchResult((List<Map>)params.get("lastLines"),jobId, start).get();
 			}
 
 		}

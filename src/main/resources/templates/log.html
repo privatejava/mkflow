@@ -112,6 +112,7 @@
       var changedToBottom = true;
       let waitInterval = 3000;
       var lastResponse = "";
+      var last3Lines = [];
       function refreshPage() {
         var url =
           window.location.protocol +
@@ -176,7 +177,8 @@
         };
 
         var getLog = function() {
-          var params = { from:1594261303, jobId: getParameterByName("jobId") };
+
+          var params = { from:lastUpdated, jobId: getParameterByName("jobId"), lastLines:last3Lines };
           if (lastLine > 0) {
             params.line = lastLine;
           }
@@ -208,6 +210,9 @@
                 }
                 lastUpdated = entry.time;
               });
+              if(data.length > 0){
+                last3Lines = data.slice(-3);
+              }
               $("#logs").append(code);
               hljs.highlightBlock($(code).get(0));
               hljs.lineNumbersBlock($(code).get(0));
