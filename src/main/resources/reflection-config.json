@@ -36,7 +36,7 @@
     "allPublicFields": true,
     "fields": [
       {
-        "type": "value",
+        "name": "type",
         "allowWrite": true
       }
     ]
@@ -51,7 +51,7 @@
     "allPublicFields": true,
     "fields": [
       {
-        "type": "value",
+        "name": "type",
         "allowWrite": true
       }
     ]
