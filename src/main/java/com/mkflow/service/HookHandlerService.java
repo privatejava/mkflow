@@ -84,7 +84,7 @@ public class HookHandlerService {
 					.setDirectory(test.toFile())
 					.setBranchesToClone(Arrays.asList(branch))
 					.setCredentialsProvider(credentialsProvider)
-					.setTimeout(10)
+					.setTimeout(15)
 					.call();
 			processGit(key,test, resp, async);
 			resp.put("dir", test.toString());
