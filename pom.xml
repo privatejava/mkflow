@@ -412,6 +412,7 @@
                     -H:+TraceClassInitialization,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
                     -H:IncludeResources=templates/.*,
+                    -H:ReflectionConfigurationFiles=reflection-config.json,
                     -H:+ReportUnsupportedElementsAtRuntime
                 </quarkus.native.additional-build-args>
             </properties>
@@ -483,6 +484,7 @@
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
                     -H:+RemoveSaturatedTypeFlows,-H:+PrintAnalysisStatistics,
+                    -H:ReflectionConfigurationFiles=reflection-config.json,
                     -H:IncludeResources=templates/.*
                 </quarkus.native.additional-build-args>
             </properties>
