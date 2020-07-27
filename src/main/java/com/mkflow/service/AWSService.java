@@ -103,7 +103,7 @@ public class AWSService {
         }
     }
 
-    public IntStream getIntStream(List<Map> lastLines,List<List<ResultField>> finalResults){
+    public IntStream getIntStream(List<Map> lastLines, List<List<ResultField>> finalResults) {
         return IntStream
             .range(0, finalResults.size())
             .filter(i -> {
@@ -138,7 +138,7 @@ public class AWSService {
                 UrlConnectionHttpClient.builder().build()
             ).build();
 
-            log.debug("Time range {}:{} {}", from, new Date().getTime() / 1000L, (new Date().getTime() / 1000L) - from);
+            log.debug("Time range {}:{} , diff:{}", from, new Date().getTime() / 1000L, (new Date().getTime() / 1000L) - from);
             StartQueryRequest request = StartQueryRequest.builder().limit(500)
                 .logGroupName("/aws/lambda/mkflow-staging-api")
                 .startTime(from)
@@ -151,7 +151,7 @@ public class AWSService {
             String queryId = startQueryResponse.queryId();
             while (queryRes == null || queryRes.status().equals(QueryStatus.RUNNING)) {
                 queryRes = client.getQueryResults(r -> r.queryId(queryId));
-                log.debug("{}:{}", queryRes.status());
+                log.debug("Status:{}", queryRes.status());
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException e) {
@@ -162,13 +162,12 @@ public class AWSService {
             if (lastLines != null && !lastLines.isEmpty()) {
 
                 List<List<ResultField>> finalResults = results;
-                List<List<ResultField>> matchedLines = getIntStream(lastLines,results)
+                List<List<ResultField>> matchedLines = getIntStream(lastLines, results)
                     .mapToObj(i -> finalResults.get(i))
                     .collect(Collectors.toList());
-							if(!matchedLines.isEmpty()){
-                  results = results.stream().skip(getIntStream(lastLines,results).max().getAsInt()+1).collect(Collectors.toList());
-              }
-                log.debug("Matched Lines: {}", matchedLines);
+                if (!matchedLines.isEmpty()) {
+                    results = results.stream().skip(getIntStream(lastLines, results).max().getAsInt() + 1).collect(Collectors.toList());
+                }
             }
             completeFuture.complete(results.stream().map(m -> {
                 Optional<ResultField> msg = m.stream().filter(f -> f.field().equalsIgnoreCase("@message")).findFirst();

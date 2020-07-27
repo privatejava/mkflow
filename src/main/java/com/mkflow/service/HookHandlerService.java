@@ -78,6 +78,7 @@ public class HookHandlerService {
 			java.nio.file.Path test = Files.createTempDirectory("test");
 
 			CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
+
 			Git.cloneRepository()
 					.setURI(url)
 					.setDirectory(test.toFile())
@@ -132,7 +133,7 @@ public class HookHandlerService {
 								Utils.getByPath(map, "cloud.auth.type", String.class) != null) {
 							AuthenticationMethod method = AuthenticationMethod.parse(Utils.getByPath(map, "cloud.auth.type", String.class));
 							switch (method) {
-								case USER_PASS:
+								case PARAMS:
 									log.debug("Auth type: {}", method);
 									resolver.addMapping(Authentication.class, AWSBasicAuthentication.class);
 									break;
