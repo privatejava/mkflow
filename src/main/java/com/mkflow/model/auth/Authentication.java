@@ -21,7 +21,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public abstract class Authentication<T> {
-    private final AuthenticationMethod type;
+    private AuthenticationMethod type;
 
     protected Authentication(AuthenticationMethod type) {
         this.type = type;
