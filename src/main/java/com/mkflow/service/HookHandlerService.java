@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.mkflow.model.*;
 import com.mkflow.model.auth.AWSBasicAuthentication;
 import com.mkflow.model.auth.Authentication;
+import com.mkflow.model.auth.AuthenticationMethod;
 import com.mkflow.model.aws.AWSServer;
 import com.mkflow.utils.Utils;
 import org.apache.commons.io.FileUtils;
@@ -60,6 +61,8 @@ public class HookHandlerService {
 
 
 	public Map process(String key,Map json, boolean async) throws IOException, GitAPIException {
+		log.debug("Payload: Async:{}, {}",async, json);
+		log.debug("Key: {}", key);
 		String type = json.containsKey("type") ? json.get("type").toString() : null;
 		String token = json.containsKey("token") ? json.get("token").toString() : null;
 		String user = json.containsKey("user") ? json.get("user").toString() : null;
