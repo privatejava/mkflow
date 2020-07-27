@@ -19,11 +19,13 @@ package com.mkflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@RegisterForReflection
 public class AWSPermission implements IAMPermission {
     private static final Logger log = LoggerFactory.getLogger(AWSPermission.class);
 

@@ -17,6 +17,9 @@
 
 package com.mkflow.model.auth;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public abstract class Authentication<T> {
     private final AuthenticationMethod type;
 

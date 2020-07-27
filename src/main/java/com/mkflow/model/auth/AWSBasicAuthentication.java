@@ -18,9 +18,11 @@
 package com.mkflow.model.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
+@RegisterForReflection
 public class AWSBasicAuthentication extends Authentication<AwsCredentials> {
 
     private AwsCredentials credentials;
