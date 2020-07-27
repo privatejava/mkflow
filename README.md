@@ -33,6 +33,19 @@ This file contains all the server specification for provisioning an instance in 
         - type - ["s3"] right now only saves the cache to S3 bucket
         - location - Specific location of S3 bucket eg. s3://<bucket>/<prefix>
 ___
+### Development
+
+Normally if you want to test it out in your local . Please clone the repository and export your AWS credential to make it work for provisioning.
+
+```
+# AWS
+export AWS_PROFILE=<your-aws-profile>
+export AWS_REGION=<preferred-region>
+
+# Maven 
+mvn clean compile quarkus:dev 
+```
+
 ### How to deploy
 
 ##### Native Deploy to AWS Serverless
