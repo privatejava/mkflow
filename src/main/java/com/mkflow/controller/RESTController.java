@@ -95,7 +95,7 @@ public class RESTController {
 	@POST
 	public List<LogMessage> logs(Map params) throws Exception {
 		List empty = new ArrayList();
-		log.debug("{}", params);
+//		log.debug("{}", params);
 		if (params.containsKey("jobId")) {
 
 			Long start = params.containsKey("from") ? Long.parseLong(params.get("from").toString()) : Instant.EPOCH.getEpochSecond();
