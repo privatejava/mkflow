@@ -410,7 +410,7 @@
                     --initialize-at-build-time,
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
-                    -H:+RemoveSaturatedTypeFlows,-H:+ReportAnalysisStatistics,
+                    -H:+ReportAnalysisStatistics,
                     -H:IncludeResources=templates/.*,
                     -H:ReflectionConfigurationFiles=reflection-config.json,
                     -H:+ReportUnsupportedElementsAtRuntime
@@ -483,7 +483,7 @@
                     -Djgit.config=/tmp/home,
                     -H:+AllowIncompleteClasspath,
                     -H:+TraceClassInitialization,
-                    -H:+RemoveSaturatedTypeFlows,-H:+ReportAnalysisStatistics,
+                    -H:+ReportAnalysisStatistics,
                     -H:ReflectionConfigurationFiles=reflection-config.json,
                     -H:IncludeResources=templates/.*
                 </quarkus.native.additional-build-args>
