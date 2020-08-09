@@ -14,12 +14,17 @@ phases:
       - ls -al
       - aws --version
       - sudo yum -y -q install git zip jq gcc glibc-devel zlib-devel libstdc++-static
+#      - |
+#        curl -s https://api.github.com/repos/graalvm/graalvm-ce-builds/releases/latest | \
+#        grep "browser_download_url.*java11.*linux-amd64.*.tar.gz" | \
+#        cut -d '"' -f 4 | \
+#        tr -d \" | \
+#        wget -qi -
       - |
-        curl -s https://api.github.com/repos/graalvm/graalvm-ce-builds/releases/latest | \
-        grep "browser_download_url.*java11.*linux-amd64.*.tar.gz" | \
+        echo https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz | \
         cut -d '"' -f 4 | \
-        tr -d \" | \
-        wget -qi -
+                tr -d \" | \
+                wget -qi -
       - ls -al && mv graalvm*.tar.gz /tmp/graalvm.tar.gz
       - WORK_DIR=$(pwd)
       - cd /tmp/ && tar -xf graa*.tar.gz
