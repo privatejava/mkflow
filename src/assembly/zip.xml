@@ -24,11 +24,11 @@
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <files>
-      <file>
-	<source>${project.build.directory}${file.separator}${artifactId}-${version}-runner</source>
-	<outputDirectory>/</outputDirectory>
-	<destName>bootstrap</destName>
-	<fileMode>755</fileMode>
-      </file>
+        <file>
+            <source>${project.build.directory}${file.separator}${artifactId}-${version}-runner</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>bootstrap</destName>
+            <fileMode>755</fileMode>
+        </file>
     </files>
 </assembly>

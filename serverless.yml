@@ -2,37 +2,39 @@ service: mkflow
 
 provider:
   name: aws
-  runtime: provided
+  runtime: java11
   memorySize: 1024
   stage: ${opt:stage, 'staging'}
   region: ap-southeast-1
   timeout: 900
   versionFunctions: false
   tracing:
-  lambda: true
   environment:
     QUARKUS_PROFILE: ${opt:stage, 'staging'}
     DISABLE_SIGNAL_HANDLERS: true
   logRetentionInDays: 365
   deploymentBucket:
     serverSideEncryption: AES256
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow' # Glue Access
+          Action:
+            - "glue:*"
+          "Resource": "*"
+        - Effect: 'Allow' # Glue Access
+          Action:
+            - "lambda:InvokeFunction"
+          "Resource": "arn:aws:lambda:*:*:function:mkflow-*"
 
-  iamRoleStatements:
-    - Effect: 'Allow' # Glue Access
-      Action:
-        - "glue:*"
-      "Resource": "*"
-    - Effect: 'Allow' # Glue Access
-      Action:
-        - "lambda:InvokeFunction"
-      "Resource": "arn:aws:lambda:*:*:function:mkflow-*"
+
 
 package:
   artifact: target/function.zip
 
 functions:
   api:
-    handler: not.used.in.provided.runtimei
+    handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
     events:
       - http:
           path: /{proxy+}
