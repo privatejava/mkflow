@@ -366,7 +366,6 @@ public class AWSProvisioner implements ProvisionerFactory<SpotInstanceRequest> {
                 .spotPrice("" + selectedInstance.getValue()).instanceCount(Integer.valueOf(1))
                 .type(SpotInstanceType.ONE_TIME)
                 .validUntil(maxAlive.toInstant())
-                .blockDurationMinutes(60)
                 .launchSpecification(c -> {
                     c.imageId(image.imageId())
                         .iamInstanceProfile(i -> i.arn(instanceProfile.arn()))
