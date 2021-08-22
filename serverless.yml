@@ -5,7 +5,7 @@ provider:
   runtime: java11
   memorySize: 1024
   stage: ${opt:stage, 'staging'}
-  region: ap-southeast-1
+  region: us-east-1
   timeout: 900
   versionFunctions: false
   tracing:
@@ -22,7 +22,7 @@ provider:
           Action:
             - "glue:*"
           "Resource": "*"
-        - Effect: 'Allow' # Glue Access
+        - Effect: 'Allow' # Glue Access0
           Action:
             - "lambda:InvokeFunction"
           "Resource": "arn:aws:lambda:*:*:function:mkflow-*"

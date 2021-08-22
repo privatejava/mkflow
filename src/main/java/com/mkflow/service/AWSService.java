@@ -73,7 +73,7 @@ public class AWSService {
         //Only applies for the lambda
         if (System.getenv("DISABLE_SIGNAL_HANDLERS") != null) {
             log.debug("Using Lambda Invoke");
-            Region region = Region.AP_SOUTHEAST_1;
+
             LambdaRequestModel model = new LambdaRequestModel();
             model.setPath("/api/run-direct");
             model.addMultiValueHeader("content-type", Arrays.asList("application/json"));
@@ -81,7 +81,7 @@ public class AWSService {
             String uniqueId = UUID.randomUUID().toString();
             json.put("uniqueKey", uniqueId);
             model.setBody(mapper.writeValueAsString(json));
-            LambdaClient awsLambda = LambdaClient.builder().region(region)
+            LambdaClient awsLambda = LambdaClient.builder()
                 .httpClient(software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient.builder().build())
                 .build();
             SdkBytes payload = SdkBytes.fromUtf8String(mapper.writeValueAsString(model));
